@@ -18,7 +18,7 @@ import os
 import argparse
 
 from src._global.setup import Logger
-log = Logger("oscigraph")
+log = Logger("wavegraph")
 
 #-=-=-=-#
 
@@ -30,6 +30,8 @@ __date__    = "27th June 2026"
 #-=-=-=-#
 
 def main(argv: list[str] | None = None):
+	from src._global.helpers.numbers import _parse_number
+
 	parser = argparse.ArgumentParser(
 		description = __doc__,
 		formatter_class = argparse.ArgumentDefaultsHelpFormatter,
@@ -80,7 +82,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-f", "--frames",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 300,
 		help = "Number of animation frames"
@@ -88,7 +90,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-fps", "--framerate",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 50,
 		help = "Image framerate"
@@ -96,15 +98,15 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-s", "--samples",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 1500,
 		help = "Boundary sample density"
 	)
 
 	optional.add_argument(
-		"-tr", "--theta-resolution",
-		type = int,
+		"-t", "--theta-resolution",
+		type = _parse_number,
 		metavar = int,
 		default = 2048,
 		help = "Angular resolution of the waveform"
@@ -112,7 +114,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-dpi", "--dpi",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 220,
 		help = "Output image DPI - higher means better resolution"
@@ -120,15 +122,23 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-freq", "--frequency",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 440 * (2 ** (3 / 12)) / 4, # C4
 		help = "Sound tone frequency in Hz"
 	)
 
 	optional.add_argument(
+		"-p", "--phase",
+		type = _parse_number,
+		metavar = float,
+		default = 0,
+		help = "Graph tracing start phase, from 0 to 360"
+	)
+
+	optional.add_argument(
 		"-sr", "--sample-rate",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 192E3,
 		help = "Sound sample rate"
@@ -138,15 +148,15 @@ def main(argv: list[str] | None = None):
 	# Switch
 
 	switch.add_argument(
-		"-ncrp", "--no-crop",
+		"-nc", "--no-crop",
 		action = "store_true",
 		help = "Do not trim transparency around output image"
 	)
 
 	switch.add_argument(
-		"-trc", "--trace-full-wave",
-		action = "store_true",
-		help = "Progressively draw the wave instead of showing it fully from frame 1"
+		"-nt", "--no-trace-full-wave",
+		action = "store_false",
+		help = "Show full wave from first frame instead of progressively drawing it"
 	)
 
 	switch.add_argument(
@@ -159,6 +169,8 @@ def main(argv: list[str] | None = None):
 	# Parse
 
 	args = parser.parse_args()
+
+	args.phase = (args.phase % 360) / 360
 
 	from src.wavegraph.core.geometry import ShapeWave
 	from src.wavegraph.render.img import render as render_img
@@ -192,6 +204,7 @@ def main(argv: list[str] | None = None):
 	wave = ShapeWave(
 		args.path_input,
 		n_samples = int(args.samples * (args.dpi / 10)),
+		starting_point = args.phase,
 		n_theta = args.theta_resolution
 	)
 
@@ -211,9 +224,11 @@ def main(argv: list[str] | None = None):
 		fps = args.framerate,
 		dpi = args.dpi,
 		color = args.color,
-		trace_full_wave = args.trace_full_wave,
+		trace_full_wave = args.no_trace_full_wave,
 		crop = not args.no_crop
 	)
 
+	return snd_path, img_path
+
 if __name__ == "__main__":
-	os.sys.exit(main())
+	main()

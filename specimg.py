@@ -16,6 +16,8 @@ __date__    = "29th June 2026"
 # Configuration
 
 def main(argv: list[str] | None = None) -> None:
+	from src._global.helpers.numbers import _parse_number
+
 	parser = argparse.ArgumentParser(
 		description = __doc__,
 		formatter_class = argparse.ArgumentDefaultsHelpFormatter,
@@ -40,7 +42,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	processing.add_argument(
 		"-fmin", "--frequency-min",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 15000,
 		help = "Bottom frequency the shape is mapped onto spectrogram"
@@ -48,7 +50,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	processing.add_argument(
 		"-fmax", "--frequency-max",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 16000,
 		help = "Up frequency the shape is mapped onto spectrogram. -1 stands for `sample_rate`"
@@ -57,14 +59,14 @@ def main(argv: list[str] | None = None) -> None:
 	# delete?
 	processing.add_argument(
 		"-peak", "--target-peak-db",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 0
 	)
 
 	processing.add_argument(
 		"-ml", "--min-level-db",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = None,
 		help = "dB floor for silent/out-of-band content. Default is true digital silence (no hiss)."
@@ -72,7 +74,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	processing.add_argument(
 		"-g", "--griffin-lim",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 0,
 		dest = "griffin_lim_iters",
@@ -109,7 +111,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	optional.add_argument(
 		"-sr", "--sample-rate",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 44100,
 		help = "Sound sample rate"
@@ -117,7 +119,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	optional.add_argument(
 		"-d", "--duration",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 1,
 		help = "Sound duration, in seconds"
@@ -125,7 +127,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	optional.add_argument(
 		"-fft", "--n-fft",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 2048,
 		help = "Controls frequency resolution"
@@ -133,7 +135,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	optional.add_argument(
 		"-hl", "--hop-ratio",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 0,
 		help = "hop_length = n_fft * hop_ratio"
@@ -149,7 +151,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	optional.add_argument(
 		"-fms", "--fade-ms",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 15
 	)
@@ -160,7 +162,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	adjustments.add_argument(
 		"-ig", "--gamma",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 1,
 		help = "Image gamma"
@@ -168,7 +170,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	adjustments.add_argument(
 		"-ic", "--contrast",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 1,
 		help = "Image contrast"
@@ -176,7 +178,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	adjustments.add_argument(
 		"-ib", "--brightness",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 1,
 		help = "Image brightness"
@@ -188,7 +190,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	conversion.add_argument(
 		"-vt", "--threshold",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = None,
 		help="Image binarization level"
@@ -196,7 +198,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	conversion.add_argument(
 		"-vs", "--vector-render-scale",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 32,
 		help = "Supersampling multiplier for image rasterization"
@@ -233,6 +235,8 @@ def main(argv: list[str] | None = None) -> None:
 	#-=-=-=-#
 
 	args = parser.parse_args()
+
+	print(args, exit)
 
 	from src.specimg.config import Settings
 	from src.specimg.core.snd.export import convert

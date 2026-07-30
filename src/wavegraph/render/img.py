@@ -136,6 +136,14 @@ def _build_figure(
 	# right: wave -- shares y_lo/y_hi with the shape panel above, not a
 	# separately-computed pad_y range, so the two stay in sync even when
 	# y_range had to grow to fit the shape.
+	#
+	# obj.theta_grid is plotted here (rather than an absolute physical
+	# angle) because it's guaranteed monotonically increasing over
+	# [0, 2*pi) regardless of `starting_point` - see ShapeWave's
+	# docstring. Plotting a starting-point-rotated angle here instead
+	# would reintroduce a backward jump partway through the array
+	# (wherever the rotation wraps past 2*pi), which renders as a
+	# spurious straight line cutting across this panel.
 	if trace_full_wave:
 		ax_wave.plot(
 			obj.theta_grid,
@@ -157,6 +165,12 @@ def _build_figure(
 		"o",
 		color = color,
 		markersize = WAVE_DOT_SIZE,
+		# `progress` sits exactly on the axes' left edge (x = 0) at the
+		# start of the cycle, and matplotlib clips markers to the axes
+		# by default - so without this, the dot would render as half a
+		# circle right at the seam. Only this artist needs it; the
+		# trace/guide lines should stay clipped normally.
+		clip_on = False,
 	)
 
 	wave_guide, = ax_wave.plot(
@@ -183,15 +197,22 @@ def _build_figure(
 
 def _update_frame(
 	obj: ShapeWave,
-	theta: float,
+	progress: float,
 	mappings: dict,
 	x_guide_end: float,
 	trace_full_wave: bool,
 ):
 	"""
-	Move the per-frame mappings to their position for this theta.
+	Move the per-frame mappings to their position for this frame.
+
+	`progress` is a position in [0, 2*pi) along the generated cycle -
+	the same phase-independent space as `obj.theta_grid` - not an
+	absolute physical angle. The shape-panel dot/guide use
+	`point_at_progress`, which folds in `obj.starting_point`
+	automatically, so the dot correctly starts (and moves) from the
+	shape's configured starting point rather than always from angle 0.
 	"""
-	px, py = obj.point_at(theta)
+	px, py = obj.point_at_progress(progress)
 
 	mappings["shape_dot"].set_data(
 		[px],
@@ -204,22 +225,22 @@ def _update_frame(
 	)
 
 	if not trace_full_wave:
-		mask = obj.theta_grid <= theta
+		mask = obj.theta_grid <= progress
 
 		mappings["wave_line"].set_data(
 			obj.theta_grid[mask],
 			obj.y[mask],
 		)
 
-	cy = obj.y_at(theta)
+	cy = obj.y_at_progress(progress)
 
 	mappings["wave_dot"].set_data(
-		[theta],
+		[progress],
 		[cy],
 	)
 
 	mappings["wave_guide"].set_data(
-		[0, theta],
+		[0, progress],
 		[cy, cy],
 	)
 
@@ -273,7 +294,8 @@ def render(
 		dpi,
 	)
 
-	thetas = np.linspace(
+	# progress values, not absolute physical angles - see _update_frame.
+	progress_values = np.linspace(
 		0,
 		2 * np.pi,
 		n_frames,
@@ -283,10 +305,10 @@ def render(
 	frames = []
 
 	try:
-		for theta in thetas:
+		for progress in progress_values:
 			_update_frame(
 				wave,
-				theta,
+				progress,
 				mappings,
 				x_guide_end,
 				trace_full_wave,

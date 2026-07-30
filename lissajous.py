@@ -15,7 +15,6 @@ import argparse
 
 from src.lissajous.config import logger as log
 
-
 #-=-=-=-#
 
 __title__   = os.path.splitext(os.path.basename(__file__))[0]
@@ -26,6 +25,8 @@ __date__    = "28th June 2026"
 #-=-=-=-#
 
 def main(argv: list[str] | None = None):
+	from src._global.helpers.numbers import _parse_number
+
 	parser = argparse.ArgumentParser(
 		description = __doc__,
 		formatter_class = argparse.ArgumentDefaultsHelpFormatter,
@@ -60,7 +61,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-a", "--attack",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 0.5,
 		help = "Seconds for waveform to grow from silence to full shape"
@@ -68,7 +69,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-d", "--duration",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 2,
 		help = "Seconds for the full static waveform is generated"
@@ -76,7 +77,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-r", "--release",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 0.5,
 		help = "Seconds for the waveform to shrink back down to silence"
@@ -84,14 +85,14 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-freq", "--frequency",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 440 * (2 ** (3 / 12)) / 4, # C4
 		help = "Loop frequency in Hz - how many times per second the shape is traced")
 
 	optional.add_argument(
 		"-sr", "--sample-rate",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 192E3,
 		help = "Output sample rate in Hz"
@@ -100,7 +101,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-deg", "--degrees",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = -45,
 		help = "Rotate the shape counter-clockwise by this many degrees before tracing"
@@ -108,7 +109,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-ss", "--starting-point",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 0,
 		help = "Index (0 to `points - 1`) into the flattened/resampled shape marking the point tracing begins from"
@@ -117,7 +118,7 @@ def main(argv: list[str] | None = None):
 	optional.add_argument(
 		"-s", "--samples",
 		dest = "flatten_samples",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 4000,
 		help = "Internal vector curve-flattening resolution"
@@ -126,7 +127,7 @@ def main(argv: list[str] | None = None):
 	optional.add_argument(
 		"-p", "--points",
 		dest = "shape_points",
-		type = int,
+		type = _parse_number,
 		metavar = int,
 		default = 2000,
 		help = "Number of uniformly arc-length-spaced points representing the shape Also the valid range for starting point"
@@ -134,7 +135,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-m", "--margin",
-		type = float,
+		type = _parse_number,
 		metavar = float,
 		default = 0.5,
 		help = "Amplitude margin, from 0 to 1 so the shape is scaled to fit within them"

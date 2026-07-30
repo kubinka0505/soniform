@@ -1,6 +1,6 @@
 <!--img src="docs/logo.svg" width=175-->
 
-<img src="https://img.shields.io/codacy/grade/f63a5ee41b80481ba64039378bfc33f9?logo=codacy&style=for-the-badge&cacheSeconds=60"></a>　<img src="https://custom-icon-badges.demolab.com/github/languages/code-size/kubinka0505/soniform?logo=database&style=for-the-badge&cacheSeconds=60"><a href="https://app.codacy.com/gh/kubinka0505/soniform">
+<img src="https://img.shields.io/codacy/grade/f63a5ee41b80481ba64039378bfc33f9?logo=codacy&style=for-the-badge&cacheSeconds=60"></a>　<a href="https://shields.io/github/kubinka0505/YTMVG/blob/main/docs/notebook.ipynb"><img src="https://shields.io/badge/Colab-Open-F9AB00?&logoColor=F9AB00&style=for-the-badge&logo=Google-Colab"></a>　<img src="https://custom-icon-badges.demolab.com/github/languages/code-size/kubinka0505/soniform?logo=database&style=for-the-badge&cacheSeconds=60"><a href="https://app.codacy.com/gh/kubinka0505/soniform">
 
 ## Description 📝
 Various scripts used to convert static visual media to signals. 🎨 → 🔊
@@ -42,7 +42,7 @@ lissajous.py -i "shape.svg" -a 0.5 -d 1.0 -r 2.0 -freq 123
 
 **Preview:**
 <br>
-<img src="docs/img/lissajous.png" height=200>
+<img src="docs/img/lissajous.gif" height=200>
 </details>
 
 
