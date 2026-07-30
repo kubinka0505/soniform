@@ -49,7 +49,7 @@ lissajous.py -i "shape.svg" -a 0.5 -d 1.0 -r 2.0 -freq 123
 
 
 
-<details><summary><h3><code>oscigraph</code> 📊</h3></summary>
+<details><summary><h3><code>wavegraph</code> 📊</h3></summary>
 Traces the outline of a shape and converts it into a waveform.
 
 Generates both a visual trace animation and a corresponding audio cycle.
