@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 from .geometry import Shape
-from ..config import Settings, Positions, Logger
+from ..config import Settings, Positions, logger as log
 
 #-=-=-=-#
 
@@ -39,7 +39,8 @@ def build_envelope(
 
 			0 skips the ramp.
 
-	Returns:
+	Returns
+	-------
 		Array the same shape as `t`, values clipped to [0, 1].
 	"""
 	frac = np.ones_like(t)
@@ -264,7 +265,7 @@ def synthesize(
 				(see `first_cycle_bounds`).
 	"""
 	def log_array(name: str, arr: np.ndarray) -> None:
-		Logger.debug(
+		log.debug(
 			"%s: shape=%s dtype=%s min=%.6f max=%.6f mean=%.6f rms=%.6f nan=%s inf=%s",
 			name,
 			arr.shape,
@@ -277,12 +278,12 @@ def synthesize(
 			np.isinf(arr).any(),
 		)
 
-		Logger.debug("-" * 32)
+		log.debug("-" * 32)
 
 	effective_duration = _resolve_effective_duration(settings)
 	effective_total_duration = settings.attack + effective_duration + settings.release
 
-	Logger.info(
+	log.info(
 		"settings: sample_rate=%d duration=%.3fs (effective=%.3fs) frequency=%.3fHz",
 		settings.sample_rate,
 		settings.duration,
@@ -293,19 +294,19 @@ def synthesize(
 	cum_len = shape.cumulative_arclength()
 	total_len = cum_len[-1]
 
-	Logger.info(
+	log.info(
 		"shape: points=%d arc_length=%.6f",
 		len(shape.xs),
 		total_len,
 	)
 
 	oversampling = 64
-	Logger.info("oversampling factor=%d", oversampling)
+	log.info("oversampling factor=%d", oversampling)
 
 	hi_rate = settings.sample_rate * oversampling
 	n_hi = max(oversampling, int(round(effective_total_duration * hi_rate)))
 
-	Logger.info(
+	log.info(
 		"high-rate render: sample_rate=%d samples=%d duration=%.6fs",
 		hi_rate,
 		n_hi,
@@ -315,7 +316,7 @@ def synthesize(
 	t_hi = np.arange(n_hi) / float(hi_rate)
 	log_array("time", t_hi)
 
-	Logger.debug("building envelope")
+	log.debug("building envelope")
 	frac = build_envelope(
 		t_hi,
 		settings.attack,
@@ -327,31 +328,31 @@ def synthesize(
 	sub_length = frac * total_len
 	log_array("sub_length", sub_length)
 
-	Logger.debug("building phase")
+	log.debug("building phase")
 	phase = np.mod(t_hi * settings.frequency, 1)
 	log_array("phase", phase)
 
-	Logger.debug("mapping phase to shape")
+	log.debug("mapping phase to shape")
 	s = np.clip(phase * sub_length, 0, total_len)
 	log_array("shape_position", s)
 
-	Logger.debug("interpolating left channel")
+	log.debug("interpolating left channel")
 	left_hi = np.interp(s, cum_len, shape.xs)
 	log_array("left_hi", left_hi)
 
-	Logger.debug("interpolating right channel")
+	log.debug("interpolating right channel")
 	right_hi = np.interp(s, cum_len, shape.ys)
 	log_array("right_hi", right_hi)
 
-	Logger.debug("decimating left")
+	log.debug("decimating left")
 	left = _decimate(left_hi, oversampling)
 	log_array("left", left)
 
-	Logger.debug("decimating right")
+	log.debug("decimating right")
 	right = _decimate(right_hi, oversampling)
 	log_array("right", right)
 
-	Logger.debug("clipping output")
+	log.debug("clipping output")
 	left = np.clip(left, -1, 1)
 	right = np.clip(right, -1, 1)
 
@@ -359,9 +360,9 @@ def synthesize(
 	log_array("right_final", right)
 
 	cycle_positions = build_cycle_positions(settings, settings.sample_rate, len(left))
-	Logger.info("cycle_positions=%s", cycle_positions)
+	log.info("cycle_positions=%s", cycle_positions)
 
-	Logger.info(
+	log.info(
 		"synthesize complete: samples=%d duration=%.6fs",
 		len(left),
 		len(left) / settings.sample_rate,

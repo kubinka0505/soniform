@@ -13,8 +13,8 @@ The output has three phases:
 import os
 import argparse
 
-from src._global.setup import Logger
-log = Logger("lissajous")
+from src.lissajous.config import logger as log
+
 
 #-=-=-=-#
 
@@ -169,7 +169,7 @@ def main(argv: list[str] | None = None):
 		"frequency", "sample_rate"
 	):
 		if getattr(args, name) < 0:
-			p.error(f"--{name} must be >= 0")
+			parser.error(f"--{name} must be >= 0")
 
 	# Path making
 

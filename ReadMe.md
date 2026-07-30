@@ -1,9 +1,9 @@
 <!--img src="docs/logo.svg" width=175-->
 
-<img src="https://custom-icon-badges.demolab.com/github/languages/code-size/kubinka0505/soniform?logo=database&style=for-the-badge">　<a href="https://codeclimate.com/github/kubinka0505/soniform"><img src="https://shields.io/codeclimate/maintainability/kubinka0505/soniform?logo=Code-Climate&style=for-the-badge"></a>　<a href="https://app.codacy.com/gh/kubinka0505/soniform"><img src="https://shields.io/codacy/grade/0b21f77d557f42bbaa447bca8d3b03f5?logo=Codacy&style=for-the-badge"></a>
+<img src="https://custom-icon-badges.demolab.com/github/languages/code-size/kubinka0505/soniform?logo=database&style=for-the-badge&cacheSeconds=60">　<a href="https://codeclimate.com/github/kubinka0505/soniform"><img src="https://shields.io/codeclimate/maintainability/kubinka0505/soniform?logo=Code-Climate&style=for-the-badge&cacheSeconds=60"></a>　<a href="https://app.codacy.com/gh/kubinka0505/soniform"><img src="https://img.shields.io/codacy/coverage/f63a5ee41b80481ba64039378bfc33f9?logo=codacy&style=for-the-badge&cacheSeconds=60">></a>
 
 ## Description 📝
-Various scripts used to convert static visual media to signals.
+Various scripts used to convert static visual media to signals. 🎨 → 🔊
 
 ## Installation ⚙️
 1. Clone the repository and move to its directory.

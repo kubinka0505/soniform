@@ -1,6 +1,9 @@
 import wave
 import numpy as np
 
+import warnings
+warnings.simplefilter("ignore", RuntimeWarning)
+
 #-=-=-=-#
 
 def write(

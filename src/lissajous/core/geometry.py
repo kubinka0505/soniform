@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from svgelements import SVG, Path as SVGPath, Shape
+from svgelements import SVG, Path as SVGPath, Shape as SVGShape
 
-from ..._global.setup import Logger
-log = Logger("lissajous")
+from ..config import Logger as log
 
 #-=-=-=-#
 
@@ -23,13 +22,13 @@ class Shape:
 	@classmethod
 	def from_shape(cls, path: str, flatten_samples: int, shape_points: int):
 		svg = SVG.parse(path)
-		shapes = [e for e in svg.elements() if isinstance(e, (SVGPath, Shape))]
+		shapes = [e for e in svg.elements() if isinstance(e, (SVGPath, SVGShape))]
 
 		if not shapes:
 			raise ValueError(f'No paths/shapes found in "{path}".')
 
 		if len(shapes) > 1:
-			warnings.warn(
+			log.warning(
 				f"{len(shapes)} sub-paths/shapes found in the shape; using the first one.",
 				UserWarning
 			)
@@ -58,41 +57,6 @@ class Shape:
 		shape._resample_uniform_arclength(shape_points)
 
 		return shape
-
-	'''
-	@classmethod
-	def from_shape(cls, path: str, flatten_samples: int, shape_points: int):
-		paths, _attrs = svg2paths(path)
-
-		if not paths:
-			raise ValueError(f'No paths/shapes found in "{path}".')
-
-		if len(paths) > 1:
-			log.warning(
-				f"{len(paths)} sub-paths/shapes found in the shape; using the first one.",
-				UserWarning
-			)
-
-		shape_path = paths[0]
-		if not shape_path.isclosed():
-			log.warning(
-				"Selected path does not appear to be closed; it will be force-closed by connecting its end back to its start.",
-				UserWarning
-			)
-
-		# Densely sample the (possibly curved) path parametrically.
-		ts = np.linspace(0, 1, flatten_samples, endpoint = True)
-		raw_pts = np.array([shape_path.point(t) for t in ts]) # complex numbers
-		xs, ys = raw_pts.real, raw_pts.imag
-
-		if xs[0] != xs[-1] or ys[0] != ys[-1]:
-			xs = np.append(xs, xs[0])
-			ys = np.append(ys, ys[0])
-
-		shape = cls(xs, ys)
-		shape._resample_uniform_arclength(shape_points)
-		return shape
-	'''
 
 	# transforms
 

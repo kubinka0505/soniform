@@ -4,8 +4,7 @@ import math
 import numpy as np
 from svgelements import SVG, Path, Shape
 
-from ..._global.setup import Logger
-log = Logger("oscigraph")
+from ..config import logger as log
 
 #-=-=-=-#
 

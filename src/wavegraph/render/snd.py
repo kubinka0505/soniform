@@ -7,11 +7,8 @@ looping audio tone at a given frequency, written as a 32-bit PCM WAV.
 from __future__ import annotations
 
 import numpy as np
-from scipy.signal import resample_poly, butter, sosfilt
 
 import wavemarks
-
-from ..core.geometry import ShapeWave
 
 from ..._global.render.snd import write
 
@@ -74,7 +71,7 @@ def render(
 	#-=-=-=-#
 	# Write
 
-	write(signal, path_out, sample_rate, True)
+	write(signal, path_out, sample_rate, normalize = True)
 
 	# Add region
 	mf = wavemarks.MarkerFile(path_out)

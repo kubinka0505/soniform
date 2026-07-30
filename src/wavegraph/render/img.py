@@ -1,14 +1,5 @@
-"""
-img.py
-------
-Renders the animation animation:
-	left panel:  the shape, with a dot tracing its boundary
-	right panel: the shape's y(theta) curve, with the same value marked,
-				 connected to the dot by a horizontal dashed guide line
-"""
 from __future__ import annotations
 
-import math
 import random
 import colorsys
 import numpy as np

@@ -198,7 +198,7 @@ def main(argv: list[str] | None = None) -> None:
 		"-vs", "--vector-render-scale",
 		type = float,
 		metavar = float,
-		default = 64,
+		default = 32,
 		help = "Supersampling multiplier for image rasterization"
 	)
 

@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from PIL import Image
 
-from ..._global.setup import Logger
-log = Logger("oscigraph")
+from ..config import logger as log
 
 #-=-=-=-#
 

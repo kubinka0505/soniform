@@ -1,8 +1,9 @@
+import os
 from dataclasses import dataclass
 
-from typing import Optional
-
 from .._global.setup import Logger
+
+from typing import Optional
 
 #-=-=-=-#
 
@@ -40,4 +41,6 @@ class Positions:
 	pos_start_release:     int
 	pos_end_release:       int
 
-Logger = Logger("lissajous")
+#-=-=-=-#
+
+logger = Logger(os.path.basename(os.path.dirname(__file__)))
