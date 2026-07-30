@@ -1,0 +1,7 @@
+numpy
+Pillow
+
+resvg-py
+svgelements
+
+wavemarks @ git+https://github.com/kubinka0505/wavemarks
