@@ -40,7 +40,9 @@ lissajous.py -i "shape.svg" -a 0.5 -d 1.0 -r 2.0 -freq 123
 * `-sr`: Audio sample rate (Hz).
 * `-freq`: Playback frequency (Hz).
 
-<br><br><img src="docs/img/lissajous.png" height=200>
+**Preview:**
+<br>
+<img src="docs/img/lissajous.png" height=200>
 </details>
 
 
@@ -72,7 +74,9 @@ wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96000 -freq 220
 * `-sr`: Audio sample rate (Hz).
 * `-freq`: Playback frequency (Hz).
 
-<br><br><img src="docs/img/wavegraph.gif" height=200>
+**Preview:**
+<br>
+<img src="docs/img/wavegraph.gif" height=200>
 </details>
 
 
@@ -102,5 +106,7 @@ specimg.py -i "shape.svg" -d 2 -sr 88200 -fmin 100 -fmax -1 -fm log
 * `-fmax`: Highest frequency included in the spectrogram (`-1` is equivalent to `-sr`).
 * `-fm`: Frequency scaling mode (`log` for logarithmic scaling).
 
-<br><br><img src="docs/img/specimg.png" height=200>
+**Preview:**
+<br>
+<img src="docs/img/specimg.png" height=200>
 </details>
