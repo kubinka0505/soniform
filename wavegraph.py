@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Turns an SVG shape into a wave rollign shape animated image and a matching
+Turns an SVG shape into a wave rolling shape animated image and a matching
 looping sound tone, in the style of circle/square/hexagon -> wave diagrams.
 
 Only the first drawable shape in the graphic is used
