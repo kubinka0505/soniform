@@ -84,7 +84,7 @@ wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96000 -freq 220
 
 
 <details><summary><h3><code>specimg</code> 🖼️</h3></summary>
-Creates a spectrogram image from the input file and produces the audio signal represented by that spectrogram.
+Creates a spectrogram image from the input file and produces the stereo audio signal represented by that spectrogram.
 
 <hr>
 
