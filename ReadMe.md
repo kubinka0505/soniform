@@ -1,6 +1,6 @@
 <!--img src="docs/logo.svg" width=175-->
 
-<img src="https://custom-icon-badges.demolab.com/github/languages/code-size/kubinka0505/soniform?logo=database&style=for-the-badge&cacheSeconds=60">　<a href="https://codeclimate.com/github/kubinka0505/soniform"><img src="https://shields.io/codeclimate/maintainability/kubinka0505/soniform?logo=Code-Climate&style=for-the-badge&cacheSeconds=60"></a>　<a href="https://app.codacy.com/gh/kubinka0505/soniform"><img src="https://img.shields.io/codacy/coverage/f63a5ee41b80481ba64039378bfc33f9?logo=codacy&style=for-the-badge&cacheSeconds=60">></a>
+<img src="https://img.shields.io/codacy/grade/f63a5ee41b80481ba64039378bfc33f9?logo=codacy&style=for-the-badge&cacheSeconds=60"></a>　<img src="https://custom-icon-badges.demolab.com/github/languages/code-size/kubinka0505/soniform?logo=database&style=for-the-badge&cacheSeconds=60"><a href="https://app.codacy.com/gh/kubinka0505/soniform">
 
 ## Description 📝
 Various scripts used to convert static visual media to signals. 🎨 → 🔊
