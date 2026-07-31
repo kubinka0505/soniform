@@ -20,7 +20,7 @@ Various scripts used to convert static visual media to signals. 🎨 → 🔊
 ### Scripts 🧰
 
 <details><summary><h3><code>lissajous</code> 🪱</h3></summary>
-<img align="right" src="docs/img/lissajous.gif" height=200>
+<img align="right" src="docs/img/lissajous.gif" width=200>
 
 Converts a vector shape into a Lissajous curve waveform, suitable for visualization on oscilloscopes.
 
@@ -33,7 +33,7 @@ lissajous.py -i "shape.svg"
 
 **Advanced usage:**
 ```bash
-lissajous.py -i "shape.svg" -a 0.5 -d 1.0 -r 2.0 -freq 123
+lissajous.py -i "shape.svg" -a 0.5 -d 1 -r 2 -freq 123
 ```
 
 **Basic arguments:**
@@ -50,7 +50,7 @@ lissajous.py -i "shape.svg" -a 0.5 -d 1.0 -r 2.0 -freq 123
 
 
 <details><summary><h3><code>wavegraph</code> 📊</h3></summary>
-<img align="right" src="docs/img/wavegraph.gif" height=200>
+<img align="right" src="docs/img/wavegraph.gif" width=200>
 
 Traces the outline of a shape and converts it into a waveform.
 
@@ -65,7 +65,7 @@ wavegraph.py -i "shape.svg"
 
 **Advanced usage:**
 ```bash
-wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96000 -freq 220
+wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96k -freq 220
 ```
 
 **Basic arguments:**
@@ -82,7 +82,7 @@ wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96000 -freq 220
 
 
 <details><summary><h3><code>specimg</code> 🖼️</h3></summary>
-<img align="right" src="docs/img/specimg.png" height=200>
+<img align="right" src="docs/img/specimg.png" width=200>
 Creates a spectrogram image from the input file and produces the stereo audio signal represented by that spectrogram.
 
 <hr>
@@ -94,7 +94,7 @@ specimg.py -i "shape.svg"
 
 **Advanced usage:**
 ```bash
-specimg.py -i "shape.svg" -d 2 -sr 88200 -fmin 100 -fmax -1 -fm log
+specimg.py -i "shape.svg" -d 2 -sr 88.2k -fmin 100 -fmax -1 -fm log
 ```
 
 **Basic arguments:**
