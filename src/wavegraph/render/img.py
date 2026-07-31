@@ -281,9 +281,9 @@ def render(
 	crop: bool = True
 ) -> str:
 	if color:
-		color = _random_color()
-	else:
 		color = "#" + color.strip("#")
+	else:
+		color = _random_color()
 
 	color = to_hex(color)
 
