@@ -171,6 +171,7 @@ def main(argv: list[str] | None = None):
 	args = parser.parse_args()
 
 	args.phase = (args.phase % 360) / 360
+	args.color = "#" + args.color.strip("#")
 
 	from src.wavegraph.core.geometry import ShapeWave
 	from src.wavegraph.render.img import render as render_img

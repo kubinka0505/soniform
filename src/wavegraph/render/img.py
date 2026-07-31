@@ -280,8 +280,10 @@ def render(
 	trace_full_wave: bool = True,
 	crop: bool = True
 ) -> str:
-	if not color:
+	if color:
 		color = _random_color()
+	else:
+		color = "#" + color.strip("#")
 
 	color = to_hex(color)
 
