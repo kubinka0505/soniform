@@ -4,7 +4,7 @@ import numpy as np
 
 from svgelements import SVG, Path as SVGPath, Shape as SVGShape
 
-from ..config import Logger as log
+from ..config import logger as log
 
 #-=-=-=-#
 
@@ -46,8 +46,7 @@ class Shape:
 		# svgelements has no isclosed(); check first/last sampled point instead.
 		if not np.isclose(xs[0], xs[-1]) or not np.isclose(ys[0], ys[-1]):
 			log.warning(
-				"Selected path does not appear to be closed; it will be force-closed by connecting its end back to its start.",
-				UserWarning
+				"Selected path does not appear to be closed; it will be force-closed by connecting its end back to its start."
 			)
 
 			xs = np.append(xs, xs[0])

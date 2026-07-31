@@ -33,7 +33,7 @@ lissajous.py -i "shape.svg"
 
 **Advanced usage:**
 ```bash
-lissajous.py -i "shape.svg" -a 0.5 -d 1 -r 2 -freq 123
+lissajous.py -i "shape.svg" -a 0.5 -d 1 -r 2 -freq A4
 ```
 
 **Basic arguments:**
@@ -42,7 +42,7 @@ lissajous.py -i "shape.svg" -a 0.5 -d 1 -r 2 -freq 123
 * `-d`: Total waveform duration (seconds).
 * `-r`: Fall-off duration after playback (seconds).
 * `-sr`: Audio sample rate (Hz).
-* `-freq`: Playback frequency (Hz).
+* `-freq`: Playback frequency (note or Hz).
 </details>
 
 
@@ -65,7 +65,7 @@ wavegraph.py -i "shape.svg"
 
 **Advanced usage:**
 ```bash
-wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96k -freq 220
+wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96k -freq C3
 ```
 
 **Basic arguments:**
@@ -74,7 +74,7 @@ wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96k -freq 220
 * `-fps`: Playback frame rate.
 * `-c`: RGB color of the rendered waveform.
 * `-sr`: Audio sample rate (Hz).
-* `-freq`: Playback frequency (Hz).
+* `-freq`: Playback frequency (note or Hz).
 </details>
 
 

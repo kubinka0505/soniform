@@ -69,9 +69,12 @@ def _build_figure(
 	ax_shape.set_facecolor((0, 0, 0, 0))
 	ax_wave.set_facecolor((0, 0, 0, 0))
 
+	dot_radius_in = (WAVE_DOT_SIZE / 2) / 72 # points -> inches
+	right_margin = dot_radius_in / fig_width
+
 	fig.subplots_adjust(
 		left = 0,
-		right = 1,
+		right = 1 - right_margin,
 		top = 1,
 		bottom = 0,
 		wspace = 0,

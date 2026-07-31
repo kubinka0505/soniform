@@ -134,8 +134,8 @@ def image_to_intensity_array(
 		- Columns correspond to spectrogram time frames.
 		- Rows correspond to image rows mapped to frequencies.
 		- Row 0 represents the lowest frequency after preprocessing.
-		- 0.0 means silent / inactive.
-		- 1.0 means maximum intensity.
+		- 0 means silent / inactive.
+		- 1 means maximum intensity.
 	"""
 	raw = _load_raw_image(path, cfg)
 	layer, _source = extract_intensity_layer(raw)

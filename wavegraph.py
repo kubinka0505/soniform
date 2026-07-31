@@ -17,8 +17,9 @@ since the angle-to-radius mapping stops being one-to-one.
 import os
 import argparse
 
-from src._global.setup import Logger
-log = Logger("wavegraph")
+from src._global.helpers.notes import NoteParser
+
+from src.wavegraph.config import logger as log
 
 #-=-=-=-#
 
@@ -124,7 +125,7 @@ def main(argv: list[str] | None = None):
 		"-freq", "--frequency",
 		type = _parse_number,
 		metavar = float,
-		default = 440 * (2 ** (3 / 12)) / 4, # C4
+		default = NoteParser.decode("C4"),
 		help = "Sound tone frequency in Hz"
 	)
 
@@ -210,6 +211,7 @@ def main(argv: list[str] | None = None):
 		starting_point = args.phase,
 		n_theta = args.theta_resolution
 	)
+	wave.verify()
 
 	log.info(f"Rendering sound -> {snd_path} ({args.frequency} Hz)")
 	snd_path = render_snd(

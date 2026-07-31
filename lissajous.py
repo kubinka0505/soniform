@@ -13,6 +13,8 @@ The output has three phases:
 import os
 import argparse
 
+from src._global.helpers.notes import NoteParser
+
 from src.lissajous.config import logger as log
 
 #-=-=-=-#
@@ -87,7 +89,7 @@ def main(argv: list[str] | None = None):
 		"-freq", "--frequency",
 		type = _parse_number,
 		metavar = float,
-		default = 440 * (2 ** (3 / 12)) / 4, # C4
+		default = NoteParser.decode("C4"),
 		help = "Loop frequency in Hz")
 
 	optional.add_argument(
@@ -169,7 +171,9 @@ def main(argv: list[str] | None = None):
 		"attack", "duration", "release",
 		"frequency", "sample_rate"
 	):
-		if getattr(args, name) < 0:
+		arg = getattr(args, name)
+
+		if isinstance(arg, (float, int)) and arg < 0:
 			parser.error(f"--{name} must be >= 0")
 
 	# Path making

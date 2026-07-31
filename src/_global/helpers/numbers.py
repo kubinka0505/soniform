@@ -4,6 +4,7 @@ import math
 import operator
 
 from numbers import Real
+from .notes import NoteParser
 
 #-=-=-=-#
 
@@ -13,25 +14,23 @@ def _parse_number(value: str | Real) -> int | float | str:
 
 	Examples
 	--------
-		"2e2"         -> 200
-		"22.01k"      -> 22010
-		"5"           -> 5
-		"2.5"         -> 2.5
-		"1.25k"       -> 1250
-		"2**2"        -> 4
-		"2+2"         -> 4
-		"(2+3)*4"     -> 20
-		"pi"          -> 3.14159...
-		"sin(pi/2)"   -> 1
-		"sqrt(44100)" -> 210
-		"text"        -> text
+		"2e2"          -> 200
+		"22.01k"       -> 22010
+		"5"            -> 5
+		"2.5"          -> 2.5
+		"1.25k"        -> 1250
+		"2**2"         -> 4
+		"2+2"          -> 4
+		"(2+3)*4"      -> 20
+		"pi"           -> 3.14159...
+		"sin(pi/2)"    -> 1
+		"sqrt(44100)"  -> 210
+		"A4"           -> 440
+		"Bb4"          -> 466.16...
+		"C#5"          -> 554.36...
+		"text"         -> text
 	"""
-
-	unitmap = {
-		"k": 3,
-		"m": 6,
-		"g": 9,
-	}
+	value_original = value
 
 	def optimize(number: float) -> int | float:
 		return int(number) if number.is_integer() else number
@@ -55,7 +54,7 @@ def _parse_number(value: str | Real) -> int | float | str:
 		}
 
 		functions = {
-			# trigonometry (radians)
+			# trigonometry
 			"sin": math.sin,
 			"cos": math.cos,
 			"tan": math.tan,
@@ -80,16 +79,39 @@ def _parse_number(value: str | Real) -> int | float | str:
 			# degree helpers
 			"deg": math.radians,
 			"rad": math.radians,
+
+			# notes
+			"note": NoteParser.decode,
 		}
 
 		def walk(node):
 			if isinstance(node, ast.Constant):
-				if isinstance(node.value, (int, float)):
+				if isinstance(
+					node.value,
+					(int, float, str)
+				):
 					return node.value
 
 			if isinstance(node, ast.Name):
-				if node.id in constants:
-					return constants[node.id]
+				name = node.id
+
+				# constants
+				if name.lower() in constants:
+					return constants[name.lower()]
+
+				# notes without sharps
+				# A4, Bb4, a4, bb4
+				if re.fullmatch(
+					r"[A-Ga-g][b]?\d+",
+					name
+				):
+					note = (
+						name[0].upper()
+						+ name[1:]
+					)
+
+					return NoteParser.decode(note)
+
 
 			if isinstance(node, ast.BinOp):
 				if type(node.op) in operators:
@@ -105,52 +127,111 @@ def _parse_number(value: str | Real) -> int | float | str:
 					)
 
 			if isinstance(node, ast.Call):
-				if (
-					isinstance(node.func, ast.Name)
-					and node.func.id in functions
-				):
-					args = [
-						walk(arg)
-						for arg in node.args
-					]
+				if isinstance(node.func, ast.Name):
+					func_name = node.func.id.lower()
 
-					return functions[node.func.id](*args)
+					if func_name in functions:
+						args = [
+							walk(arg)
+							for arg in node.args
+						]
 
-			raise ValueError("Unsupported expression")
+						return functions[func_name](
+							*args
+						)
+			raise ValueError(
+				"Unsupported expression"
+			)
 
-		tree = ast.parse(expr, mode = "eval")
+		# Convert sharp notes before Python parses them
+		expr = re.sub(
+			r"\b([A-Ga-g]#[0-9]+)\b",
+			r"note('\1')",
+			expr
+		)
+
+		# Make function names case-insensitive
+		expr = re.sub(
+			r"\b(SIN|COS|TAN|ASIN|ACOS|ATAN|ATAN2|LOG|LOG10|EXP|SQRT|ABS|FLOOR|CEIL|DEG|RAD|NOTE)\b",
+			lambda m: m.group(1).lower(),
+			expr
+		)
+
+		tree = ast.parse(
+			expr,
+			mode="eval"
+		)
 
 		return walk(tree.body)
 
 	# already numeric
 	if isinstance(value, Real):
-		return optimize(float(value))
+		return optimize(
+			float(value)
+		)
 
-	value = str(value).strip().lower()
+	value = str(value).strip()
 
 	# allow calculator-style grouping
-	value = value.replace("[", "(").replace("]", ")")
+	value = (
+		value
+		.replace("[", "(")
+		.replace("]", ")")
+	)
+
+	# direct note input
+	if re.fullmatch(
+		r"[A-Ga-g][#b]?\d+",
+		value
+	):
+		note = (
+			value[0].upper()
+			+ value[1:]
+		)
+
+		return optimize(
+			NoteParser.decode(note)
+		)
+
+	unitmap = {
+		"k": 3,
+		"m": 6,
+		"g": 9,
+	}
 
 	# suffix units first
 	match = re.fullmatch(
 		rf"([0-9]*\.?[0-9]+)([{''.join(unitmap)}])",
-		value,
+		value.lower(),
 	)
 
 	if match:
 		number, suffix = match.groups()
+
 		return optimize(
-			float(number) * (10 ** unitmap[suffix])
+			float(number)
+			* (10 ** unitmap[suffix])
 		)
 
 	# plain number
 	try:
-		return optimize(float(value))
+		return optimize(
+			float(value)
+		)
 	except ValueError:
 		pass
 
 	# expression
 	try:
-		return optimize(float(evaluate(value)))
-	except (ValueError, SyntaxError, TypeError, ZeroDivisionError):
-		return value
+		return optimize(
+			float(
+				evaluate(value)
+			)
+		)
+	except (
+		ValueError,
+		SyntaxError,
+		TypeError,
+		ZeroDivisionError,
+	):
+		return value_original

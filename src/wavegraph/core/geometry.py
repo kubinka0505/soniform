@@ -73,7 +73,8 @@ def load_first_shape(file_path: str) -> Path:
 	Load an image file and return its single drawable shape as a Path,
 	with any transforms baked in.
 
-	Rules:
+	Rules
+	-----
 	- More than one filled shape (or, lacking any filled shape, more than
 	  one border) is an error - only one shape per file is supported.
 	- If both a filled shape and a border are present, the filled shape
@@ -209,13 +210,24 @@ class ShapeWave:
 	`y(theta)` - which downstream code can treat as a single audio cycle
 	(via `y_norm`) or as a sequence of image frames (via `point_at`).
 
-	Parameters
-	----------
+	This re-parametrization is only well-defined if the shape is
+	star-shaped with respect to its centroid (a straight ray from the
+	centroid hits the boundary exactly once at every angle) - true for
+	convex shapes and most simple concave ones, but not for shapes with
+	deep notches, spirals, multiple lobes, or holes. Call `verify()`
+	after construction to check this before relying on `r`/`x`/`y`.
+
+	Attributes:
+		file_path (str): Path to the source SVG file this shape was loaded from.
+
 		path (Path): The loaded, transform-baked shape.
+
 		centroid (np.ndarray): The `[cx, cy]` centroid used as the polar origin.
+
 		starting_point (float): Fraction, in `[0, 1)`, of the way
 			around the shape's boundary sampling where the generated
 			cycle begins.
+
 		theta_grid (np.ndarray): Uniform, starting-point-independent
 			progress grid of shape `(n_theta,)`, monotonically
 			increasing over `[0, 2*pi)`. Represents "how far along the
@@ -223,9 +235,13 @@ class ShapeWave:
 			`point_at_progress`/`y_at_progress` (not `point_at`/`y_at`)
 			to look up the corresponding boundary location, since those
 			account for `starting_point`.
+
 		r (np.ndarray): Radius from centroid at each position in `theta_grid` (starting-point-adjusted).
+
 		x (np.ndarray): Centroid-relative x coordinate at each position in `theta_grid` (starting-point-adjusted).
+
 		y (np.ndarray): Centroid-relative, y-up coordinate at each position in `theta_grid` (starting-point-adjusted).
+
 		y_norm (np.ndarray): `y` normalized to roughly `[-1, 1]`, suitable
 			for direct use as an audio waveform cycle.
 	"""
@@ -233,8 +249,8 @@ class ShapeWave:
 		"""
 		Load a shape and build its angle-parametrized boundary representation.
 
-	Parameters
-	----------
+		Parameters
+		----------
 			file_path: Path to the SVG file containing the shape.
 
 			n_samples: Number of raw boundary points to sample from the
@@ -257,15 +273,18 @@ class ShapeWave:
 				(`theta_grid`), i.e. the resolution of the resulting
 				waveform/animation in one full revolution.
 		"""
+		self.file_path = file_path
 		self.path = load_first_shape(file_path)
 		raw = sample_boundary(self.path, n_samples)
 		self.centroid = polygon_centroid(raw)
 
 		dx = raw[:, 0] - self.centroid[0]
-		# flip y here because image y grows downward; we want a conventional
-		# math-style upward-positive y for the waveform / plot.
+
 		dy = -(raw[:, 1] - self.centroid[1])
+
 		theta = np.mod(np.arctan2(dy, dx), 2 * np.pi)
+
+		self._boundary_theta_walk = theta
 
 		order = np.argsort(theta)
 		theta_sorted = theta[order]
@@ -299,6 +318,99 @@ class ShapeWave:
 		# normalize y to roughly [-1, 1] for audio / display convenience
 		span = max(abs(self.y.max()), abs(self.y.min()), 1e-9)
 		self.y_norm = self.y / span
+
+	def verify(self, tolerance: float = 1e-2) -> None:
+		"""
+		Check that the shape is star-shaped with respect to its
+		centroid, i.e. that the angle-based re-parametrization this
+		class relies on (`theta -> r/x/y`) is actually well-defined.
+
+		That re-parametrization assumes a straight ray from the
+		centroid hits the boundary exactly once at every angle. This
+		holds for convex shapes and most simple concave ones, but
+		breaks down for shapes with deep notches, spirals, multiple
+		lobes, or holes, where two or more distinct boundary points can
+		share the same angle. When that happens, `__init__` silently
+		keeps only one of the colliding points (via `np.unique`) and
+		discards the rest, so the resulting `r`/`x`/`y` arrays "trace"
+		by randomly hopping between unrelated parts of the boundary
+		wherever two parts happened to share an angle - the chaotic,
+		jumbled trace this method is meant to catch ahead of time.
+
+		The check walks the boundary in its original sampled order (not
+		re-sorted by angle) and confirms two things:
+		1. The angle around the centroid changes in one consistent
+			direction as you walk the boundary - only small numerical
+			wobble (up to `tolerance`) is allowed, not a genuine reversal.
+		2. The boundary winds around the centroid close to exactly once
+			over the full walk, rather than zero, two, or more times.
+
+		Parameters
+		----------
+			tolerance: Maximum allowed backward angular step, in
+				radians, between consecutive raw boundary samples
+				before it's treated as a genuine direction reversal
+				rather than sampling noise. Larger values are more
+				forgiving of small concave wiggles; smaller values catch
+				subtler problems but may also flag noisy sampling of an
+				otherwise-fine shape.
+
+		Raises
+		------
+			ValueError: If the boundary is not star-shaped with respect
+				to its centroid. The message reports, in plain terms,
+				roughly where (as a fraction of the way around the
+				boundary) the first direction reversal was found, and/or
+				the shape's actual winding number, to help pin down the
+				offending part of the shape.
+		"""
+		theta = self._boundary_theta_walk
+
+		# angular step between consecutive raw boundary samples,
+		# wrapped into (-pi, pi] so a step that crosses the 2*pi -> 0
+		# seam reads as a small forward step rather than a huge jump.
+		diffs = np.diff(theta)
+		diffs = (diffs + np.pi) % (2 * np.pi) - np.pi
+
+		# also check the step that closes the loop (last sample back to first)
+		closing = (theta[0] - theta[-1] + np.pi) % (2 * np.pi) - np.pi
+		diffs = np.concatenate([diffs, [closing]])
+
+		# the boundary may be sampled clockwise or counter-clockwise;
+		# figure out which direction is dominant so a reversal can be
+		# measured against it either way.
+		direction = np.sign(np.median(diffs))
+		if direction == 0:
+			direction = 1
+
+		winding = diffs.sum() / (2 * np.pi)
+		reversed_at = np.where(diffs * direction < -tolerance)[0]
+
+		problems = []
+
+		if reversed_at.size:
+			frac = reversed_at[0] / len(theta)
+			problems.append(
+				f"the angle around the centroid reverses direction at "
+				f"roughly {frac:%} of the way around the boundary"
+			)
+
+		# any genuine winding-count error differs by at least a whole
+		# turn, so a generous fixed threshold (well under half a turn)
+		# reliably tells "close to one turn" apart from "wrong number
+		# of turns" without needing its own tunable parameter.
+		if abs(abs(winding) - 1) > 0.5:
+			problems.append(
+				f"the boundary winds around the centroid {winding:.2f} "
+				"times (expected exactly approx. 1)"
+			)
+
+		if problems:
+			raise ValueError(
+				"Shape is not correctly shaped with respect "
+				"to its centroid, so its angle-based trace would be "
+				f"unreliable or chaotic: {'; '.join(problems)}."
+			)
 
 	def point_at_progress(self, progress: float):
 		"""
