@@ -19,7 +19,7 @@ class Settings:
 	sample_rate: int
 	reverse: bool
 
-	degrees: float
+	rotation: float
 	starting_point: int
 
 	flatten_samples: int

@@ -100,7 +100,7 @@ def main(argv: list[str] | None = None):
 
 
 	optional.add_argument(
-		"-deg", "--degrees",
+		"-rot", "--rotation",
 		type = _parse_number,
 		metavar = float,
 		default = -45,
@@ -196,7 +196,7 @@ def main(argv: list[str] | None = None):
 		frequency = args.frequency,
 		sample_rate = args.sample_rate,
 		reverse = args.reverse,
-		degrees = args.degrees,
+		rotation = args.rotation,
 		starting_point = args.starting_point,
 		flatten_samples = args.flatten_samples,
 		shape_points = args.shape_points,
@@ -210,8 +210,8 @@ def main(argv: list[str] | None = None):
 
 	if cfg.starting_point:
 		shape.roll_start(cfg.starting_point)
-	if cfg.degrees:
-		shape.rotate(cfg.degrees)
+	if cfg.rotation:
+		shape.rotate(cfg.rotation)
 	if cfg.reverse:
 		shape.reverse()
 
