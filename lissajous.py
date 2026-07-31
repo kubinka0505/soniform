@@ -88,7 +88,7 @@ def main(argv: list[str] | None = None):
 		type = _parse_number,
 		metavar = float,
 		default = 440 * (2 ** (3 / 12)) / 4, # C4
-		help = "Loop frequency in Hz - how many times per second the shape is traced")
+		help = "Loop frequency in Hz")
 
 	optional.add_argument(
 		"-sr", "--sample-rate",
