@@ -18,6 +18,7 @@ import os
 import argparse
 
 from src._global.helpers.notes import NoteParser
+from src._global.helpers.string import build_format_map
 
 from src.wavegraph.config import logger as log
 
@@ -58,7 +59,7 @@ def main(argv: list[str] | None = None):
 	# Optional
 
 	optional.add_argument(
-		"-oi", "--output-image",
+		"-oi", "--path-output-image",
 		type = str,
 		metavar = str,
 		default = os.path.normpath("outputs/{prog_name}/{file_name}/{file_name}_{samples}.gif"),
@@ -66,7 +67,7 @@ def main(argv: list[str] | None = None):
 	)
 
 	optional.add_argument(
-		"-os", "--output-sound",
+		"-os", "--path-output-sound",
 		type = str,
 		metavar = str,
 		default = os.path.normpath("outputs/{prog_name}/{file_name}/{file_name}_{sample_rate}_{frequency}.wav"),
@@ -90,11 +91,11 @@ def main(argv: list[str] | None = None):
 	)
 
 	optional.add_argument(
-		"-fps", "--framerate",
-		type = _parse_number,
+		"-fps", "--frame-rate",
+		type = int,
 		metavar = int,
 		default = 50,
-		help = "Image framerate"
+		help = "Image frame rate"
 	)
 
 	optional.add_argument(
@@ -181,26 +182,50 @@ def main(argv: list[str] | None = None):
 	from src.wavegraph.render.snd import render as render_snd
 
 	# Path making
-
 	base = os.path.splitext(os.path.basename(args.path_input))[0]
-	img_path = args.output_image.format(
-		prog_name = __title__,
-		file_name = base,
-		samples = args.samples
-	) or f"{base}.gif"
 
-	snd_path = args.output_sound.format(
-		prog_name = __title__,
-		file_name = base,
-		sample_rate = int(args.sample_rate),
-		frequency = str(round(args.frequency, 3)).replace(".", ",")
-	) or f"{base}.wav"
+	values = {
+		k: v
+		for k, v in vars(args).items()
+		if isinstance(v, (str, int, float))
+	}
 
-	if args.output_sound and img_path != args.output_sound:
-		os.makedirs(os.path.dirname(img_path), exist_ok = True)
+	values.update({
+		"prog_name": __title__,
+		"file_name": base,
 
-	if args.output_image and img_path != args.output_image:
-		os.makedirs(os.path.dirname(img_path), exist_ok = True)
+		"frequency": f"{values['frequency']:.3f}".replace(".", ","),
+		"sample_rate": int(args.sample_rate),
+	})
+
+	aliases = {
+		"prog_name": ["prog"],
+
+		"color": ["col", "clr"],
+
+		"frames": ["f"],
+		"framerate": ["fps", "frame_rate"],
+
+		"samples": ["s"],
+
+		"theta_resolution": ["theta", "theta_res"],
+
+		"frequency": ["freq"],
+		"phase": ["phs"],
+
+		"sample_rate": ["sr", "samplerate"],
+	}
+
+	fmt = build_format_map(values, aliases)
+
+	path_img = args.path_output_image.format(**fmt)
+	path_snd = args.path_output_sound.format(**fmt)
+
+	if args.path_output_sound and path_img != args.path_output_sound:
+		os.makedirs(os.path.dirname(path_img), exist_ok = True)
+
+	if args.path_output_image and path_img != args.path_output_image:
+		os.makedirs(os.path.dirname(path_img), exist_ok = True)
 
 	#-=-=-=-#
 
@@ -213,27 +238,27 @@ def main(argv: list[str] | None = None):
 	)
 	wave.verify()
 
-	log.info(f"Rendering sound -> {snd_path} ({args.frequency} Hz)")
-	snd_path = render_snd(
+	log.info(f"Rendering sound -> {path_snd} ({args.frequency} Hz)")
+	path_snd = render_snd(
 		wave,
-		snd_path,
+		path_snd,
 		frequency = args.frequency,
 		sample_rate = args.sample_rate,
 	)
 
-	log.info(f"Rendering image -> {img_path} ({args.frames} frames @ {args.framerate} FPS)")
-	img_path = render_img(
+	log.info(f"Rendering image -> {path_img} ({args.frames} frames @ {args.frame_rate} FPS)")
+	path_img = render_img(
 		wave,
-		img_path,
+		path_img,
 		n_frames = args.frames,
-		fps = args.framerate,
+		fps = args.frame_rate,
 		dpi = args.dpi,
 		color = args.color,
 		trace_full_wave = args.no_trace_full_wave,
 		crop = not args.no_crop
 	)
 
-	return snd_path, img_path
+	return path_snd, path_img
 
 if __name__ == "__main__":
 	main()

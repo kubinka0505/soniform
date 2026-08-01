@@ -118,6 +118,7 @@ class Shape:
 	def reverse(self):
 		self.xs = self.xs[::-1].copy()
 		self.ys = self.ys[::-1].copy()
+
 		return self
 
 	# internals

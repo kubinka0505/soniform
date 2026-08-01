@@ -5,6 +5,8 @@ Encodes an image into the magnitude spectrogram of an audio file.
 import os
 import argparse
 
+from src._global.helpers.string import build_format_map
+
 #-=-=-=-#
 
 __title__   = os.path.splitext(os.path.basename(__file__))[0]
@@ -234,9 +236,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	#-=-=-=-#
 
-	args = parser.parse_args()
-
-	print(args, exit)
+	args = parser.parse_args(argv)
 
 	from src.specimg.config import Settings
 	from src.specimg.core.snd.export import convert
@@ -245,15 +245,66 @@ def main(argv: list[str] | None = None) -> None:
 		args.frequency_max = args.sample_rate
 
 	# Path making
-
 	base = os.path.splitext(os.path.basename(args.path_input))[0]
-	path_out = args.path_output.format(
-		prog_name = __title__,
-		file_name = base,
-		sample_rate = args.sample_rate,
-		frequency_min = str(round(args.frequency_min, 3)).replace(".", ","),
-		frequency_max = str(round(args.frequency_max, 3)).replace(".", ",")
-	) or f"{base}.gif"
+
+	values = {
+		k: v
+		for k, v in vars(args).items()
+		if isinstance(v, (str, int, float))
+	}
+
+	values.update({
+		"prog_name": __title__,
+		"file_name": base,
+
+		"frequency_min": f"{values['frequency_min']:.3f}".replace(".", ","),
+		"frequency_max": f"{values['frequency_max']:.3f}".replace(".", ","),
+
+		"sample_rate": int(args.sample_rate),
+	})
+
+	aliases = {
+		"prog_name": ["prog"],
+
+		"path_input": ["input", "in"],
+		
+		"frequency_min": ["fmin", "freq_min"],
+		"frequency_max": ["fmax", "freq_max"],
+
+		"target_peak_db": ["peak", "peak_db"],
+		"min_level_db": ["min_level", "min_db"],
+
+		"griffin_lim_iters": ["griffin_lim", "gl_iters"],
+		"frequency_mode": ["fmode", "freq_mode"],
+		"phase_mode": ["pmode"],
+
+		"path_output": ["output", "out"],
+
+		"sample_rate": ["sr", "samplerate"],
+		"duration": ["dur", "time"],
+
+		"n_fft": ["fft"],
+		"hop_ratio": ["hop"],
+
+		"window": ["win"],
+
+		"fade_ms": ["fade"],
+
+		"gamma": ["gma"],
+		"contrast": ["con"],
+		"brightness": ["bright"],
+
+		"threshold": ["thr", "thresh"],
+		"vector_render_scale": ["scale", "render_scale"],
+
+		"invert": ["inv"],
+		"flip_horizontal": ["flip_x", "fx"],
+		"flip_vertical": ["flip_y", "fy"],
+	}
+
+	fmt = build_format_map(values, aliases)
+
+	path_out = args.path_output.format(**fmt)
 
 	if args.path_output and path_out != args.path_output:
 		os.makedirs(os.path.dirname(path_out), exist_ok = True)

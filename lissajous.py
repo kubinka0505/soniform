@@ -14,6 +14,7 @@ import os
 import argparse
 
 from src._global.helpers.notes import NoteParser
+from src._global.helpers.string import build_format_map
 
 from src.lissajous.config import logger as log
 
@@ -177,14 +178,47 @@ def main(argv: list[str] | None = None):
 			parser.error(f"--{name} must be >= 0")
 
 	# Path making
-
 	base = os.path.splitext(os.path.basename(args.path_input))[0]
-	path_out = args.path_output.format(
-		prog_name = __title__,
-		file_name = base,
-		sample_rate = int(args.sample_rate),
-		frequency = str(round(args.frequency, 3)).replace(".", ",")
-	) or f"{base}.gif"
+
+	values = {
+		k: v
+		for k, v in vars(args).items()
+		if isinstance(v, (str, int, float))
+	}
+
+	values.update({
+		"prog_name": __title__,
+		"file_name": base,
+
+		"frequency": f"{values['frequency']:.3f}".replace(".", ","),
+		"sample_rate": int(args.sample_rate),
+	})
+
+	aliases = {
+		"prog_name": ["prog"],
+
+		"attack": ["atk"],
+		"duration": ["dur", "time"],
+		"release": ["rel"],
+
+		"frequency": ["freq", "f"],
+		"sample_rate": ["sr", "samplerate"],
+
+		"rotation": ["rot", "angle"],
+
+		"starting_point": ["start", "start_point"],
+
+		"flatten_samples": ["samples", "samp", "flat_samples"],
+		"shape_points": ["points", "pts"],
+
+		"margin": ["marg"],
+
+		"reverse": ["rev"],
+	}
+
+	fmt = build_format_map(values, aliases)
+
+	path_out = args.path_output.format(**fmt)
 
 	if args.path_output and path_out != args.path_output:
 		os.makedirs(os.path.dirname(path_out), exist_ok = True)
