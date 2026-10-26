@@ -16,6 +16,8 @@ import argparse
 from src._global.helpers.notes import NoteParser
 from src._global.helpers.string import build_format_map
 
+from src._global.helpers.traceback import _parser_traceback
+
 from src.lissajous.config import logger as log
 
 #-=-=-=-#
@@ -237,44 +239,45 @@ def main(argv: list[str] | None = None):
 
 	#-=-=-=-#
 
-	cfg = Settings(
-		path_input = args.path_input,
-		path_output = path_out,
-		attack = args.attack,
-		duration = args.duration,
-		release = args.release,
-		frequency = args.frequency,
-		sample_rate = args.sample_rate,
-		reverse = args.reverse,
-		rotation = args.rotation,
-		starting_point = args.point_start,
-		flatten_samples = args.flatten_samples,
-		shape_points = args.shape_points,
-		margin = args.margin,
-	)
+	with _parser_traceback(parser):
+		cfg = Settings(
+			path_input = args.path_input,
+			path_output = path_out,
+			attack = args.attack,
+			duration = args.duration,
+			release = args.release,
+			frequency = args.frequency,
+			sample_rate = args.sample_rate,
+			reverse = args.reverse,
+			rotation = args.rotation,
+			starting_point = args.point_start,
+			flatten_samples = args.flatten_samples,
+			shape_points = args.shape_points,
+			margin = args.margin,
+		)
 
-	log.info(f'Loading shape from "{cfg.path_input}"...')
+		log.info(f'Loading shape from "{cfg.path_input}"...')
 
-	shape = Shape.from_shape(cfg.path_input, cfg.flatten_samples, cfg.shape_points)
-	shape.normalize(margin = cfg.margin)
-	
-	if cfg.rotation:
-		shape.rotate(cfg.rotation)
-	if cfg.reverse:
-		shape.reverse()
+		shape = Shape.from_shape(cfg.path_input, cfg.flatten_samples, cfg.shape_points)
+		shape.normalize(margin = cfg.margin)
+		
+		if cfg.rotation:
+			shape.rotate(cfg.rotation)
+		if cfg.reverse:
+			shape.reverse()
 
-	# Resolve starting point after all transforms
-	starting_point_index = Shape._resolve_point_start(cfg.starting_point, shape, log, parser)
-	shape.roll_start(starting_point_index)
+		# Resolve starting point after all transforms
+		starting_point_index = Shape._resolve_point_start(cfg.starting_point, shape, log, parser)
+		shape.roll_start(starting_point_index)
 
-	left, right, boundaries = synthesize(shape, cfg)
+		left, right, boundaries = synthesize(shape, cfg)
 
-	write_sound(
-		cfg.path_output,
-		left, right,
-		cfg.sample_rate,
-		boundaries
-	)
+		write_sound(
+			cfg.path_output,
+			left, right,
+			cfg.sample_rate,
+			boundaries
+		)
 
 #-=-=-=-#
 

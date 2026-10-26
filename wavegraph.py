@@ -20,6 +20,8 @@ import argparse
 from src._global.helpers.notes import NoteParser
 from src._global.helpers.string import build_format_map
 
+from src._global.helpers.traceback import _parser_traceback
+
 from src.wavegraph.config import logger as log
 
 #-=-=-=-#
@@ -256,35 +258,36 @@ def main(argv: list[str] | None = None):
 
 	log.info(f"Loading shape from {args.path_input}...")
 
-	wave = ShapeWave(
-		args.path_input,
-		n_samples = int(args.samples * (args.dpi / 10)),
-		starting_point = args.phase,
-		n_theta = args.theta_resolution
-	)
-	wave.verify()
+	with _parser_traceback(parser):
+		wave = ShapeWave(
+			args.path_input,
+			n_samples = int(args.samples * (args.dpi / 10)),
+			starting_point = args.phase,
+			n_theta = args.theta_resolution
+		)
+		wave.verify()
 
-	log.info(f"Rendering sound -> {path_snd} ({args.frequency} Hz)")
-	path_snd = render_snd(
-		wave,
-		path_snd,
-		frequency = args.frequency,
-		sample_rate = args.sample_rate,
-	)
+		log.info(f"Rendering sound -> {path_snd} ({args.frequency} Hz)")
+		path_snd = render_snd(
+			wave,
+			path_snd,
+			frequency = args.frequency,
+			sample_rate = args.sample_rate,
+		)
 
-	log.info(f"Rendering image -> {path_img} ({args.frames} frames @ {args.frame_rate} FPS)")
-	path_img = render_img(
-		wave,
-		path_img,
-		n_frames = args.frames,
-		fps = args.frame_rate,
-		dpi = args.dpi,
-		color = args.color,
-		trace_full_wave = args.no_trace_full_wave,
-		crop = not args.no_crop,
-		reverse = args.reverse,
-		left = not args.right,
-	)
+		log.info(f"Rendering image -> {path_img} ({args.frames} frames @ {args.frame_rate} FPS)")
+		path_img = render_img(
+			wave,
+			path_img,
+			n_frames = args.frames,
+			fps = args.frame_rate,
+			dpi = args.dpi,
+			color = args.color,
+			trace_full_wave = args.no_trace_full_wave,
+			crop = not args.no_crop,
+			reverse = args.reverse,
+			left = not args.right,
+		)
 
 	return path_snd, path_img
 

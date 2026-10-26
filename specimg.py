@@ -7,6 +7,8 @@ import argparse
 
 from src._global.helpers.string import build_format_map
 
+from src._global.helpers.traceback import _parser_traceback
+
 #-=-=-=-#
 
 __title__   = os.path.splitext(os.path.basename(__file__))[0]
@@ -312,33 +314,34 @@ def main(argv: list[str] | None = None) -> None:
 
 	#-=-=-=-#
 
-	cfg = Settings(
-		sample_rate = args.sample_rate,
-		duration = args.duration,
-		n_fft = args.n_fft,
-		hop_ratio = args.hop_ratio,
-		window = args.window,
-		frequency_min = args.frequency_min,
-		frequency_max = args.frequency_max,
-		frequency_mode = args.frequency_mode,
-		invert = args.invert,
-		flip_vertical = args.flip_vertical,
-		flip_horizontal = args.flip_horizontal,
-		gamma = args.gamma,
-		contrast = args.contrast,
-		brightness = args.brightness,
-		threshold = args.threshold,
-		vector_render_scale = args.vector_render_scale,
-		min_level_db = args.min_level_db,
-		phase_mode = args.phase_mode,
-		griffin_lim_iters = args.griffin_lim_iters,
-		fade_ms = args.fade_ms
-	)
+	with _parser_traceback(parser):
+		cfg = Settings(
+			sample_rate = args.sample_rate,
+			duration = args.duration,
+			n_fft = args.n_fft,
+			hop_ratio = args.hop_ratio,
+			window = args.window,
+			frequency_min = args.frequency_min,
+			frequency_max = args.frequency_max,
+			frequency_mode = args.frequency_mode,
+			invert = args.invert,
+			flip_vertical = args.flip_vertical,
+			flip_horizontal = args.flip_horizontal,
+			gamma = args.gamma,
+			contrast = args.contrast,
+			brightness = args.brightness,
+			threshold = args.threshold,
+			vector_render_scale = args.vector_render_scale,
+			min_level_db = args.min_level_db,
+			phase_mode = args.phase_mode,
+			griffin_lim_iters = args.griffin_lim_iters,
+			fade_ms = args.fade_ms
+		)
 
-	if not os.path.exists(args.path_input):
-		parser.error(f"Input file not found: {args.path_input}")
+		if not os.path.exists(args.path_input):
+			parser.error(f"Input file not found: {args.path_input}")
 
-	convert(args.path_input, path_out, cfg)
+		convert(args.path_input, path_out, cfg)
 
 if __name__ == "__main__":
 	main()

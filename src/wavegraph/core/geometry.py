@@ -142,15 +142,14 @@ def sample_boundary(path: Path, n_samples: int = 4000) -> np.ndarray:
 		path's native (image) coordinate space, where y grows downward.
 	"""
 	ts = np.linspace(0, 1, n_samples, endpoint = False)
+	length = path.length()
 	pts = []
 
-	log.info(f"Found {len(ts)} points")
 	for t in ts:
-		p = path.point(t)
-		#log.debug(f"[{len(ts)}] X {p.x:.12f} | Y {p.y:.12f}")
+		p = path.point(length * t)
 		pts.append((p.x, p.y))
 
-	return np.array(pts, dtype = float)
+	return np.array(pts, dtype=float)
 
 def polygon_centroid(points: np.ndarray) -> np.ndarray:
 	"""
@@ -317,9 +316,8 @@ class ShapeWave:
 
 		if problems:
 			raise ValueError(
-				"Shape is not correctly shaped with respect "
-				"to its centroid, so its angle-based trace would be "
-				f"unreliable or chaotic: {'; '.join(problems)}."
+				f"Shape is not correctly shaped with respect to its centroid - "
+				f"its angle-based trace is chaotic: {'; '.join(problems)}."
 			)
 
 	def point_at_progress(self, progress: float):
