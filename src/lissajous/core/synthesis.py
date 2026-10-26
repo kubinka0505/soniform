@@ -23,25 +23,25 @@ def build_envelope(
 
 	Parameters
 	----------
-		t (np.ndarray):
-			Sample times in seconds, monotonically increasing.
+	t (np.ndarray):
+		Sample times in seconds, monotonically increasing.
 
-		attack (float):
-			Seconds to ramp from 0 to full coverage.
+	attack (float):
+		Seconds to ramp from 0 to full coverage.
 
-			0 skips the ramp.
+		0 skips the ramp.
 
-		duration (float):
-			Seconds to hold at full coverage.
+	duration (float):
+		Seconds to hold at full coverage.
 
-		release (float):
-			Seconds to ramp back down to 0.
+	release (float):
+		Seconds to ramp back down to 0.
 
-			0 skips the ramp.
+		0 skips the ramp.
 
 	Returns
 	-------
-		Array the same shape as `t`, values clipped to [0, 1].
+	Array the same shape as `t`, values clipped to [0, 1].
 	"""
 	frac = np.ones_like(t)
 
@@ -73,38 +73,38 @@ def first_cycle_bounds(
 	(e.g. via wavemarks) without having to re-derive the timing there.
 
 	Special cases, matching `synthesize`:
-		- `settings.duration == 0`:
-			There is no sustain region at all, so no full
-			cycle ever plays at full coverage.
+	- `settings.duration == 0`:
+		There is no sustain region at all, so no full
+		cycle ever plays at full coverage.
 
-			Returns `None`.
-		- `settings.duration < 0`:
-			"single-cycle mode" - the sustain region is forced to
-			exactly one period (`1 / frequency` seconds), regardless
-			of the magnitude of the negative value, and that whole
-			region is the first (and only) cycle.
+		Returns `None`.
+	- `settings.duration < 0`:
+		"single-cycle mode" - the sustain region is forced to
+		exactly one period (`1 / frequency` seconds), regardless
+		of the magnitude of the negative value, and that whole
+		region is the first (and only) cycle.
 
-		- `0 < settings.duration < 1 / frequency`:
-			The sustain region exists but isn't long
-			enough to contain one full cycle.
+	- `0 < settings.duration < 1 / frequency`:
+		The sustain region exists but isn't long
+		enough to contain one full cycle.
 			
-			Returns `None` rather than an unbounded/misleading region.
+		Returns `None` rather than an unbounded/misleading region.
 
 	Parameters
 	----------
-		settings:
-			Render settings (`attack`, `duration`, `frequency`).
+	settings:
+		Render settings (`attack`, `duration`, `frequency`).
 
-		sample_rate (int):
-			Output sample rate in Hz - the final rate the sound
-			file is written at, not the oversampled render rate.
+	sample_rate (int):
+		Output sample rate in Hz - the final rate the sound
+		file is written at, not the oversampled render rate.
 
 	Returns
 	-------
-		`(start_sample, end_sample)`:
-			end-exclusive
-		None:
-			If no full cycle exists to bound.
+	`(start_sample, end_sample)`:
+		end-exclusive
+	None:
+		If no full cycle exists to bound.
 	"""
 	if settings.duration == 0:
 		return None
@@ -137,13 +137,13 @@ def _resolve_effective_duration(settings: Settings) -> float:
 
 	Parameters
 	-----------
-		settings:
-			Render settings.
+	settings:
+		Render settings.
 
 	Returns
 	-------
-		float:
-			Sustain length in seconds.
+	float:
+		Sustain length in seconds.
 	"""
 	if settings.duration < 0:
 		return 1 / settings.frequency
@@ -161,7 +161,7 @@ def build_cycle_positions(
 	Special cases, matching `synthesize` / `build_envelope`:
 		- `settings.duration == 0`:
 			No sustain region exists, so there is no full cycle at full coverage.
-			`pos_start_first_cycle` and `pos_end_first_cycle` are `None`.
+			`pos_start_cycle_1` and `pos_end_cycle_1` are `None`.
 
 		- `settings.duration < 0`:
 			"single-cycle mode" - the sustain region is exactly one period long,
@@ -170,28 +170,28 @@ def build_cycle_positions(
 		- `0 < settings.duration < 1 / frequency`:
 			Sustain region exists but is shorter than one full cycle.
 
-			`pos_start_first_cycle` / `pos_end_first_cycle` are `None`
+			`pos_start_cycle_1` / `pos_end_cycle_1` are `None`
 			rather than describing a partial cycle.
 
 	Parameters
 	-----------
-		settings:
-			Render settings (`attack`, `duration`, `release`, `frequency`).
+	settings:
+		Render settings (`attack`, `duration`, `release`, `frequency`).
 
-		sample_rate (int):
-			Output sample rate in Hz - the final rate the sound is written at,
-			not the oversampled render rate.
+	sample_rate (int):
+		Output sample rate in Hz - the final rate the sound is written at,
+		not the oversampled render rate.
 
-		total_samples (int):
-			Actual number of samples in the rendered signal (`len(left)`),
-			used for `pos_end_release` so the returned bounds always
-			agree with the real array length regardless of
-			independent floating-point rounding.
+	total_samples (int):
+		Actual number of samples in the rendered signal (`len(left)`),
+		used for `pos_end_release` so the returned bounds always
+		agree with the real array length regardless of
+		independent floating-point rounding.
 
 	Returns
 	-------
-		`Positions`:
-			Populated positions.
+	`Positions`:
+		Populated positions.
 	"""
 	cycle_length_sec = 1 / settings.frequency
 	effective_duration = _resolve_effective_duration(settings)
@@ -203,11 +203,11 @@ def build_cycle_positions(
 	sustain_end_pos = pos_end_attack + round(effective_duration * sample_rate)
 
 	if effective_duration <= 0 or effective_duration < cycle_length_sec:
-		pos_start_first_cycle: Optional[int] = None
-		pos_end_first_cycle: Optional[int] = None
+		pos_start_cycle_1: Optional[int] = None
+		pos_end_cycle_1: Optional[int] = None
 	else:
-		pos_start_first_cycle = sustain_start_pos
-		pos_end_first_cycle = sustain_start_pos + round(cycle_length_sec * sample_rate)
+		pos_start_cycle_1 = sustain_start_pos
+		pos_end_cycle_1 = sustain_start_pos + round(cycle_length_sec * sample_rate)
 
 	pos_start_release = sustain_end_pos
 	pos_end_release = total_samples
@@ -216,8 +216,8 @@ def build_cycle_positions(
 		pos_start_attack = pos_start_attack,
 		pos_end_attack = pos_end_attack,
 
-		pos_start_first_cycle = pos_start_first_cycle,
-		pos_end_first_cycle = pos_end_first_cycle,
+		pos_start_cycle_1 = pos_start_cycle_1,
+		pos_end_cycle_1 = pos_end_cycle_1,
 
 		pos_start_release = pos_start_release,
 		pos_end_release = pos_end_release,
@@ -245,24 +245,24 @@ def synthesize(
 
 	Parameters
 	----------
-		shape:
-			The closed, normalized point loop to trace.
+	shape:
+		The closed, normalized point loop to trace.
 
-		settings:
-			Render settings (attack/duration/release, frequency,
-			sample_rate, and oversampling parameters).
+	settings:
+		Render settings (attack/duration/release, frequency,
+		sample_rate, and oversampling parameters).
 
 	Returns
 	-------
-		tuple:
-			- `left`:
-				left-channel (X) samples, shape `(n_samples,)`.
-			- `right`:
-				right-channel (Y) samples, shape `(n_samples,)`.
-			- `cycle_bounds`:
-				`(start_sample, end_sample)` of the first full
-				cycle in the final output, or `None` if none exists
-				(see `first_cycle_bounds`).
+	tuple:
+	- `left`:
+		left-channel (X) samples, shape `(n_samples,)`.
+	- `right`:
+		right-channel (Y) samples, shape `(n_samples,)`.
+	- `cycle_bounds`:
+		`(start_sample, end_sample)` of the first full
+		cycle in the final output, or `None` if none exists
+		(see `first_cycle_bounds`).
 	"""
 	def log_array(name: str, arr: np.ndarray) -> None:
 		log.debug(
@@ -379,17 +379,18 @@ def _decimate(signal: np.ndarray, factor: int) -> np.ndarray:
 	----------
 		signal (np.ndarray):
 			1-D input array.
+
 		factor:
 		    Number of input samples averaged per output sample.
 			Values `<= 1` are a no-op (input returned unchanged).
 
 	Returns
 	-------
-		np.ndarray:
-			Decimated array.
-		    If `len(signal)` isn't a multiple of `factor`,
-			the trailing `len(signal) % factor` samples
-			are dropped before averaging.
+	np.ndarray:
+		Decimated array.
+
+	    If `len(signal)` isn't a multiple of `factor`, the trailing
+		`len(signal) % factor` samples are dropped before averaging.
 	"""
 	if factor <= 1:
 		return signal

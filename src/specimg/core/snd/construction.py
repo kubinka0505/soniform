@@ -54,9 +54,10 @@ def _row_frequencies(
 	Parameters
 	----------
 	mode (str):
-		"log"    -> more rows devoted to the low end (matches how
-		            spectrogram viewers usually draw a log-frequency axis).
-		"exp"    -> the mirror of log -- more rows devoted to the high end.
+		"log": More rows devoted to the low end (matches how
+			   spectrogram viewers usually draw a log-frequency axis).
+		"exp":
+			   The mirror of log -- more rows devoted to the high end.
 
 		Otherwise linear.
 	"""

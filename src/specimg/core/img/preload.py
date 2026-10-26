@@ -33,27 +33,27 @@ def _guess_image_width(img_text: str) -> float:
 	return 512
 
 def _pad_image(img: Image.Image, width_ratio: float = 1, height_ratio: float = 1) -> Image.Image:
-    """
+	"""
 	Pad image canvas to a scale ratio while centering the original content.
 	"""
-    if width_ratio == 1 and height_ratio == 1:
-        return img
+	if width_ratio == 1 and height_ratio == 1:
+		return img
 
-    new_w = max(img.width, int(round(img.width * width_ratio)))
-    new_h = max(img.height, int(round(img.height * height_ratio)))
-    
-    if new_w == img.width and new_h == img.height:
-        return img
+	new_w = max(img.width, int(round(img.width * width_ratio)))
+	new_h = max(img.height, int(round(img.height * height_ratio)))
+	
+	if new_w == img.width and new_h == img.height:
+		return img
 
-    bg_color = (0, 0, 0, 0) if "A" in img.mode or img.mode == "P" else 0
-    canvas = Image.new(img.mode, (new_w, new_h), bg_color)
-    
-    # Calculate exact offsets
-    offset_x = (new_w - img.width) // 2
-    offset_y = (new_h - img.height) // 2
+	bg_color = (0, 0, 0, 0) if "A" in img.mode or img.mode == "P" else 0
+	canvas = Image.new(img.mode, (new_w, new_h), bg_color)
+	
+	# Calculate exact offsets
+	offset_x = (new_w - img.width) // 2
+	offset_y = (new_h - img.height) // 2
 
-    canvas.paste(img, (offset_x, offset_y))
-    return canvas
+	canvas.paste(img, (offset_x, offset_y))
+	return canvas
 
 def _load_raw_image(path: Path, cfg: Settings) -> Image.Image:
 	"""

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Turns an SVG shape into a wave rolling shape animated image and a matching
+Turns an vector shape into a wave rolling shape animated image and a matching
 looping sound tone, in the style of circle/square/hexagon -> wave diagrams.
 
 Only the first drawable shape in the graphic is used
@@ -42,6 +42,9 @@ def main(argv: list[str] | None = None):
 
 	required = parser.add_argument_group("Required arguments")
 	optional = parser.add_argument_group("Optional arguments")
+	visual   = parser.add_argument_group("Visual arguments")
+	snd      = parser.add_argument_group("Sound arguments")
+	shape    = parser.add_argument_group("Shape arguments")
 	switch   = parser.add_argument_group("Switch arguments")
 
 	#-=-=-=-#
@@ -74,7 +77,10 @@ def main(argv: list[str] | None = None):
 		help = "Output sound path."
 	)
 
-	optional.add_argument(
+	#-=-=-=-#
+	# Visual
+
+	visual.add_argument(
 		"-c", "--color",
 		type = str,
 		metavar = str,
@@ -82,7 +88,7 @@ def main(argv: list[str] | None = None):
 		help = "Hex color for the plotted curve/shape. Random if None."
 	)
 
-	optional.add_argument(
+	visual.add_argument(
 		"-f", "--frames",
 		type = _parse_number,
 		metavar = int,
@@ -90,7 +96,7 @@ def main(argv: list[str] | None = None):
 		help = "Number of animation frames"
 	)
 
-	optional.add_argument(
+	visual.add_argument(
 		"-fps", "--frame-rate",
 		type = int,
 		metavar = int,
@@ -98,15 +104,7 @@ def main(argv: list[str] | None = None):
 		help = "Image frame rate"
 	)
 
-	optional.add_argument(
-		"-s", "--samples",
-		type = _parse_number,
-		metavar = int,
-		default = 1500,
-		help = "Boundary sample density"
-	)
-
-	optional.add_argument(
+	visual.add_argument(
 		"-t", "--theta-resolution",
 		type = _parse_number,
 		metavar = int,
@@ -114,7 +112,7 @@ def main(argv: list[str] | None = None):
 		help = "Angular resolution of the waveform"
 	)
 
-	optional.add_argument(
+	visual.add_argument(
 		"-dpi", "--dpi",
 		type = _parse_number,
 		metavar = int,
@@ -122,15 +120,7 @@ def main(argv: list[str] | None = None):
 		help = "Output image DPI - higher means better resolution"
 	)
 
-	optional.add_argument(
-		"-freq", "--frequency",
-		type = _parse_number,
-		metavar = float,
-		default = NoteParser.decode("C4"),
-		help = "Sound tone frequency in Hz"
-	)
-
-	optional.add_argument(
+	visual.add_argument(
 		"-p", "--phase",
 		type = _parse_number,
 		metavar = float,
@@ -138,12 +128,52 @@ def main(argv: list[str] | None = None):
 		help = "Graph tracing start phase, from 0 to 360"
 	)
 
-	optional.add_argument(
+	switch.add_argument(
+		"-nt", "--no-trace-full-wave",
+		action = "store_false",
+		help = "Show full wave from first frame instead of progressively drawing it"
+	)
+
+	switch.add_argument(
+		"-rev", "--reverse",
+		action = "store_true",
+		help = "Reverse the animation direction (traverse boundary backwards)"
+	)
+
+	switch.add_argument(
+		"--right",
+		action = "store_true",
+		help = "Render shape on right, wave on left (default: shape left, wave right)"
+	)
+
+	#-=-=-=-#
+	# Sound
+
+	snd.add_argument(
 		"-sr", "--sample-rate",
 		type = _parse_number,
 		metavar = int,
 		default = 192E3,
 		help = "Sound sample rate"
+	)
+
+	snd.add_argument(
+		"-freq", "--frequency",
+		type = _parse_number,
+		metavar = float,
+		default = NoteParser.decode("C4"),
+		help = "Sound tone frequency in Hz"
+	)
+
+	#-=-=-=-#
+	# Shape
+
+	shape.add_argument(
+		"-s", "--samples",
+		type = _parse_number,
+		metavar = int,
+		default = 1500,
+		help = "Boundary sample density"
 	)
 
 	#-=-=-=-#
@@ -153,12 +183,6 @@ def main(argv: list[str] | None = None):
 		"-nc", "--no-crop",
 		action = "store_true",
 		help = "Do not trim transparency around output image"
-	)
-
-	switch.add_argument(
-		"-nt", "--no-trace-full-wave",
-		action = "store_false",
-		help = "Show full wave from first frame instead of progressively drawing it"
 	)
 
 	switch.add_argument(
@@ -178,7 +202,7 @@ def main(argv: list[str] | None = None):
 		args.color = "#" + args.color.strip("#")
 
 	from src.wavegraph.core.geometry import ShapeWave
-	from src.wavegraph.render.img import render as render_img
+	from src.wavegraph.render.plot import render as render_img
 	from src.wavegraph.render.snd import render as render_snd
 
 	# Path making
@@ -230,6 +254,7 @@ def main(argv: list[str] | None = None):
 	#-=-=-=-#
 
 	log.info(f"Loading shape from {args.path_input}...")
+
 	wave = ShapeWave(
 		args.path_input,
 		n_samples = int(args.samples * (args.dpi / 10)),
@@ -255,7 +280,9 @@ def main(argv: list[str] | None = None):
 		dpi = args.dpi,
 		color = args.color,
 		trace_full_wave = args.no_trace_full_wave,
-		crop = not args.no_crop
+		crop = not args.no_crop,
+		reverse = args.reverse,
+		left = not args.right,
 	)
 
 	return path_snd, path_img

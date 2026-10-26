@@ -38,6 +38,9 @@ def main(argv: list[str] | None = None):
 
 	required = parser.add_argument_group("Required arguments")
 	optional = parser.add_argument_group("Optional arguments")
+	snd_env  = parser.add_argument_group("Sound envelope arguments")
+	snd_perc = parser.add_argument_group("Sound perception arguments")
+	visual   = parser.add_argument_group("Visual arguments")
 	switch   = parser.add_argument_group("Switch arguments")
 
 	#-=-=-=-#
@@ -52,17 +55,20 @@ def main(argv: list[str] | None = None):
 	)
 
 	#-=-=-=-#
-	# Optional
+	# Optional 1
 
 	optional.add_argument(
 		"-o", "--path-output",
 		type = str,
 		metavar = str,
-		default = os.path.normpath("outputs/{prog_name}/{file_name}/{file_name}_{sample_rate}_{frequency}.wav"),
+		default = os.path.join("outputs", "{prog_name}", "{file_name}", "{file_name}_{sample_rate}_{frequency}.wav"),
 		help = "Output sound path"
 	)
 
-	optional.add_argument(
+	#-=-=-=-#
+	# Sound envelope properties
+
+	snd_env.add_argument(
 		"-a", "--attack",
 		type = _parse_number,
 		metavar = float,
@@ -70,7 +76,7 @@ def main(argv: list[str] | None = None):
 		help = "Seconds for waveform to grow from silence to full shape"
 	)
 
-	optional.add_argument(
+	snd_env.add_argument(
 		"-d", "--duration",
 		type = _parse_number,
 		metavar = float,
@@ -78,7 +84,7 @@ def main(argv: list[str] | None = None):
 		help = "Seconds for the full static waveform is generated"
 	)
 
-	optional.add_argument(
+	snd_env.add_argument(
 		"-r", "--release",
 		type = _parse_number,
 		metavar = float,
@@ -86,14 +92,17 @@ def main(argv: list[str] | None = None):
 		help = "Seconds for the waveform to shrink back down to silence"
 	)
 
-	optional.add_argument(
+	#-=-=-=-#
+	# Sound perception properties
+
+	snd_perc.add_argument(
 		"-freq", "--frequency",
 		type = _parse_number,
 		metavar = float,
 		default = NoteParser.decode("C4"),
 		help = "Loop frequency in Hz")
 
-	optional.add_argument(
+	snd_perc.add_argument(
 		"-sr", "--sample-rate",
 		type = _parse_number,
 		metavar = int,
@@ -101,8 +110,7 @@ def main(argv: list[str] | None = None):
 		help = "Output sample rate in Hz"
 	)
 
-
-	optional.add_argument(
+	snd_perc.add_argument(
 		"-rot", "--rotation",
 		type = _parse_number,
 		metavar = float,
@@ -110,15 +118,18 @@ def main(argv: list[str] | None = None):
 		help = "Rotate the shape counter-clockwise by this many degrees before tracing"
 	)
 
-	optional.add_argument(
-		"-ss", "--starting-point",
-		type = _parse_number,
-		metavar = int,
-		default = 0,
-		help = "Index (0 to `points - 1`) into the flattened/resampled shape marking the point tracing begins from"
+	#-=-=-=-#
+	# Visual
+
+	visual.add_argument(
+		"-ss", "--point-start",
+		type = str,
+		metavar = "Node[x,y]",
+		default = "0, 0",
+		help = "Approximate x,y coordinates of shape node to start rendering from"
 	)
 
-	optional.add_argument(
+	visual.add_argument(
 		"-s", "--samples",
 		dest = "flatten_samples",
 		type = _parse_number,
@@ -127,16 +138,16 @@ def main(argv: list[str] | None = None):
 		help = "Internal vector curve-flattening resolution"
 	)
 
-	optional.add_argument(
+	visual.add_argument(
 		"-p", "--points",
 		dest = "shape_points",
 		type = _parse_number,
 		metavar = int,
 		default = 2000,
-		help = "Number of uniformly arc-length-spaced points representing the shape Also the valid range for starting point"
+		help = "Number of uniformly arc-length-spaced points representing the shape."
 	)
 
-	optional.add_argument(
+	visual.add_argument(
 		"-m", "--margin",
 		type = _parse_number,
 		metavar = float,
@@ -206,7 +217,7 @@ def main(argv: list[str] | None = None):
 
 		"rotation": ["rot", "angle"],
 
-		"starting_point": ["start", "start_point"],
+		"point_start": ["start", "start_point"],
 
 		"flatten_samples": ["samples", "samp", "flat_samples"],
 		"shape_points": ["points", "pts"],
@@ -235,7 +246,7 @@ def main(argv: list[str] | None = None):
 		sample_rate = args.sample_rate,
 		reverse = args.reverse,
 		rotation = args.rotation,
-		starting_point = args.starting_point,
+		starting_point = args.point_start,
 		flatten_samples = args.flatten_samples,
 		shape_points = args.shape_points,
 		margin = args.margin,
@@ -245,13 +256,15 @@ def main(argv: list[str] | None = None):
 
 	shape = Shape.from_shape(cfg.path_input, cfg.flatten_samples, cfg.shape_points)
 	shape.normalize(margin = cfg.margin)
-
-	if cfg.starting_point:
-		shape.roll_start(cfg.starting_point)
+	
 	if cfg.rotation:
 		shape.rotate(cfg.rotation)
 	if cfg.reverse:
 		shape.reverse()
+
+	# Resolve starting point after all transforms
+	starting_point_index = Shape._resolve_point_start(cfg.starting_point, shape, log, parser)
+	shape.roll_start(starting_point_index)
 
 	left, right, boundaries = synthesize(shape, cfg)
 

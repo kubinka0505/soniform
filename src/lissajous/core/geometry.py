@@ -39,7 +39,7 @@ class Shape:
 
 		# Densely sample the (possibly curved) path parametrically.
 		ts = np.linspace(0, 1, flatten_samples, endpoint = True)
-		raw_pts = [shape_path.point(t) for t in ts] # Point objects, not complex numbers
+		raw_pts = [shape_path.point(t) for t in ts] # point objects, not complex numbers
 		xs = np.array([p.x for p in raw_pts])
 		ys = np.array([p.y for p in raw_pts])
 
@@ -151,3 +151,46 @@ class Shape:
 		seg_len = np.hypot(dx, dy)
 
 		return np.concatenate(([0], np.cumsum(seg_len)))
+
+	# helpers
+
+	@staticmethod
+	def _resolve_point_start(value: str, shape, logger, parser) -> int:
+		"""
+		Parse starting point as "x, y" coordinates.
+		Find and return the index of the closest point in the shape.
+		"""
+		parts = value.split(",")
+		
+		try:
+			target_x = float(parts[0].strip())
+			target_y = float(parts[1].strip()) if len(parts) > 1 else 0
+		except (ValueError, IndexError):
+			parser.error(f'Invalid starting point format: {value}. Use "x" or "x, y".')
+
+		# Find closest point in shape by distance
+		distances = np.sqrt((shape.xs - target_x) ** 2 + (shape.ys - target_y) ** 2)
+		closest_idx = int(np.argmin(distances))
+		
+		min_distance = distances[closest_idx]
+
+		found_x = float(shape.xs[closest_idx])
+		found_y = float(shape.ys[closest_idx])
+		
+		idx0_x = float(shape.xs[0])
+		idx0_y = float(shape.ys[0])
+
+		logger.info(
+			f"Starting point: target ({target_x:.6f}, {target_y:.6f}) -> "
+			f"closest point index {closest_idx} at ({found_x:.6f}, {found_y:.6f}) distance={min_distance:.6f}"
+		)
+		logger.info(
+			f"Shape[0]=({idx0_x:.6f}, {idx0_y:.6f}), found point is +{closest_idx} offset"
+		)
+		
+		# nearby points for debugging
+		nearby_indices = [max(0, closest_idx - 2), closest_idx - 1, closest_idx, closest_idx + 1, min(len(shape.xs) - 1, closest_idx + 2)]
+		nearby = ", ".join([f"[{i}]=({shape.xs[i]:.3f},{shape.ys[i]:.3f})" for i in nearby_indices if 0 <= i < len(shape.xs)])
+		logger.debug(f"Nearby points: {nearby}")
+
+		return closest_idx

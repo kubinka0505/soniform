@@ -28,7 +28,7 @@ def convert(
 
 	Parameters
 	----------
-	input_path (Path)
+	input_path (Path):
 		Source image file.
 
 	output_path (Path):

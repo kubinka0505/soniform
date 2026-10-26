@@ -11,8 +11,8 @@ class Settings:
 	sample_rate: int   = 44100
 	duration:    float = 6
 	n_fft:       int   = 2048
-	hop_ratio:   float = 0              # hop_length = n_fft * hop_ratio (overlap)
-	window:      str  = "hann"          # any scipy.signal window name
+	hop_ratio:   float = 0     # hop_length = n_fft * hop_ratio (overlap)
+	window:      str  = "hann" # any scipy.signal window name
 
 	# Frequency placement
 	frequency_min:  float = 0
@@ -22,7 +22,7 @@ class Settings:
 	# Image handling
 	invert:              bool  = False
 	flip_vertical:       bool  = False
-	flip_horizontal:     bool  = False  # reverse output
+	flip_horizontal:     bool  = False
 	gamma:               float = 1
 	contrast:            float = 1
 	brightness:          float = 1
@@ -37,7 +37,7 @@ class Settings:
 	griffin_lim_iters: int = 0
 
 	# Post-processing
-	fade_ms:   float = 15               # fade-in/out length in milliseconds
+	fade_ms:   float = 15
 
 	#-=-=-=-#
 

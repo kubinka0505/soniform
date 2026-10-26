@@ -40,9 +40,9 @@ def write_sound(
 		)
 
 		first_cycle = wavemarks.Entry(
-			boundaries.pos_start_first_cycle,
-			boundaries.pos_end_first_cycle,
-			name = "1st Cycle"
+			boundaries.pos_start_cycle_1,
+			boundaries.pos_end_cycle_1,
+			name = "Cycle 1"
 		)
 
 		release = wavemarks.Entry(

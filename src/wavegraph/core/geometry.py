@@ -14,13 +14,15 @@ def _iter_shapes(file: SVG):
 
 	Parameters
 	----------
-		file: A parsed `svgelements.SVG` document (result of `SVG.parse(...)`).
+		file:
+			A parsed `svgelements.SVG` document (result of `SVG.parse(...)`)
 
 	Yields
 	------
-		Shape: Each element in the document that is a drawable shape
-			(path, rect, circle, polygon, ...), excluding the root/nested
-			`SVG` container elements themselves.
+	Shape:
+		Each element in the document that is a drawable shape
+		(path, rect, circle, polygon, ...), excluding the root/nested
+		`SVG` container elements themselves.
 	"""
 	for element in file.elements():
 		if isinstance(element, Shape) and not isinstance(element, SVG):
@@ -32,13 +34,15 @@ def _has_fill(shape: Shape) -> bool:
 
 	Parameters
 	----------
-		shape: The shape to inspect.
+	shape:
+		The shape to inspect.
 
 	Returns
 	-------
-		bool: True if the shape has an actual fill (an enclosed area);
-			False if it's a "border" - a stroke-only outline with
-			`fill = "none"` (or no fill attribute at all).
+	bool:
+		True if the shape has an actual fill (an enclosed area);
+		False if it's a "border" - a stroke-only outline with
+		`fill = "none"` (or no fill attribute at all).
 	"""
 	fill = getattr(shape, "fill", None)
 	value = getattr(fill, "value", fill)
@@ -49,15 +53,10 @@ def _close_path(path: Path) -> None:
 	"""
 	Close an open path in place by bridging its last point to its first.
 
-	This is only meant for "border" elements (see `_has_fill`) that
-	describe an outline rather than a filled area - the rest of the
-	pipeline needs a closed loop to walk all the way around. If the path
-	is already closed (start and end points coincide, within tolerance),
-	or if either endpoint can't be determined, the path is left untouched.
-
 	Parameters
 	----------
-		path: The path to close, modified in place.
+	path:
+		The path to close, modified in place.
 	"""
 	start = path.first_point
 	end = path.current_point
@@ -73,31 +72,22 @@ def load_first_shape(file_path: str) -> Path:
 	Load an image file and return its single drawable shape as a Path,
 	with any transforms baked in.
 
-	Rules
-	-----
-	- More than one filled shape (or, lacking any filled shape, more than
-	  one border) is an error - only one shape per file is supported.
-	- If both a filled shape and a border are present, the filled shape
-	  wins and the border is ignored.
-	- If there's only a border (no filled shape), it's converted into a
-	  shape by closing it (see `_close_path`).
-	- An SVG with no elements at all, or none that are drawable shapes,
-	  is an error.
-
 	Parameters
 	----------
-		file_path: Path to the SVG file to load.
+	file_path:
+		Path to the SVG file to load.
 
 	Returns
 	-------
-		Path: The single resolved shape, with transforms baked into its
-			own coordinates (`reify`'d), and closed if it originated from
-			a border outline.
+	Path:
+		The single resolved shape, with transforms baked into its
+		own coordinates and closed if it originated from a border outline.
 
 	Raises
 	------
-		ValueError: If the file is empty, contains no drawable shapes,
-			or contains more than one candidate shape/border.
+	ValueError:
+		If the file is empty, contains no drawable shapes,
+		or contains more than one candidate shape/border.
 	"""
 	img = SVG.parse(file_path)
 
@@ -128,10 +118,6 @@ def load_first_shape(file_path: str) -> Path:
 	path = Path(element)
 	path.reify() # bake transforms into the path's own coordinates
 
-	# svgelements already evaluates curved segments (cubic/quadratic
-	# bezier, arcs) parametrically inside Path.point(t), so no manual
-	# curve-flattening is needed here - only borders need help, since an
-	# open outline has no "boundary" to walk all the way around.
 	if is_border:
 		_close_path(path)
 
@@ -143,16 +129,17 @@ def sample_boundary(path: Path, n_samples: int = 4000) -> np.ndarray:
 
 	Parameters
 	----------
-		path: The (closed) path to sample.
-		n_samples: Number of points to sample along the path's parametric
-			range `[0, 1)`. Higher values produce a smoother boundary
-			approximation at the cost of more computation.
+	path:
+		The (closed) path to sample.
+	n_samples:
+		Number of points to sample along the path's parametric range `[0, 1]`.
+		Higher values produce a smoother boundary approximation at the cost of more computation.
 
 	Returns
 	-------
-		np.ndarray: An `(n_samples, 2)` array of `(x, y)` coordinates, in
-			the path's native (image) coordinate space, where y grows
-			downward.
+	np.ndarray:
+		An `(n_samples, 2)` array of `(x, y)` coordinates, in the
+		path's native (image) coordinate space, where y grows downward.
 	"""
 	ts = np.linspace(0, 1, n_samples, endpoint = False)
 	pts = []
@@ -200,51 +187,6 @@ def polygon_centroid(points: np.ndarray) -> np.ndarray:
 #-=-=-=-#
 
 class ShapeWave:
-	"""
-	Re-parametrizes a shape boundary by polar angle around its centroid.
-
-	The shape's boundary is sampled densely, converted to polar
-	coordinates relative to its centroid, and then resampled onto a
-	uniform angular grid (`theta_grid`). This turns an arbitrary closed
-	2D shape into three functions of angle - `r(theta)`, `x(theta)`, and
-	`y(theta)` - which downstream code can treat as a single audio cycle
-	(via `y_norm`) or as a sequence of image frames (via `point_at`).
-
-	This re-parametrization is only well-defined if the shape is
-	star-shaped with respect to its centroid (a straight ray from the
-	centroid hits the boundary exactly once at every angle) - true for
-	convex shapes and most simple concave ones, but not for shapes with
-	deep notches, spirals, multiple lobes, or holes. Call `verify()`
-	after construction to check this before relying on `r`/`x`/`y`.
-
-	Attributes:
-		file_path (str): Path to the source SVG file this shape was loaded from.
-
-		path (Path): The loaded, transform-baked shape.
-
-		centroid (np.ndarray): The `[cx, cy]` centroid used as the polar origin.
-
-		starting_point (float): Fraction, in `[0, 1)`, of the way
-			around the shape's boundary sampling where the generated
-			cycle begins.
-
-		theta_grid (np.ndarray): Uniform, starting-point-independent
-			progress grid of shape `(n_theta,)`, monotonically
-			increasing over `[0, 2*pi)`. Represents "how far along the
-			generated cycle", not an absolute physical angle - use
-			`point_at_progress`/`y_at_progress` (not `point_at`/`y_at`)
-			to look up the corresponding boundary location, since those
-			account for `starting_point`.
-
-		r (np.ndarray): Radius from centroid at each position in `theta_grid` (starting-point-adjusted).
-
-		x (np.ndarray): Centroid-relative x coordinate at each position in `theta_grid` (starting-point-adjusted).
-
-		y (np.ndarray): Centroid-relative, y-up coordinate at each position in `theta_grid` (starting-point-adjusted).
-
-		y_norm (np.ndarray): `y` normalized to roughly `[-1, 1]`, suitable
-			for direct use as an audio waveform cycle.
-	"""
 	def __init__(self, file_path: str, n_samples: int = 4000, starting_point: float = 0, n_theta: int = 2048):
 		"""
 		Load a shape and build its angle-parametrized boundary representation.
@@ -325,50 +267,25 @@ class ShapeWave:
 		centroid, i.e. that the angle-based re-parametrization this
 		class relies on (`theta -> r/x/y`) is actually well-defined.
 
-		That re-parametrization assumes a straight ray from the
-		centroid hits the boundary exactly once at every angle. This
-		holds for convex shapes and most simple concave ones, but
-		breaks down for shapes with deep notches, spirals, multiple
-		lobes, or holes, where two or more distinct boundary points can
-		share the same angle. When that happens, `__init__` silently
-		keeps only one of the colliding points (via `np.unique`) and
-		discards the rest, so the resulting `r`/`x`/`y` arrays "trace"
-		by randomly hopping between unrelated parts of the boundary
-		wherever two parts happened to share an angle - the chaotic,
-		jumbled trace this method is meant to catch ahead of time.
-
-		The check walks the boundary in its original sampled order (not
-		re-sorted by angle) and confirms two things:
-		1. The angle around the centroid changes in one consistent
-			direction as you walk the boundary - only small numerical
-			wobble (up to `tolerance`) is allowed, not a genuine reversal.
-		2. The boundary winds around the centroid close to exactly once
-			over the full walk, rather than zero, two, or more times.
-
 		Parameters
 		----------
-			tolerance: Maximum allowed backward angular step, in
-				radians, between consecutive raw boundary samples
-				before it's treated as a genuine direction reversal
-				rather than sampling noise. Larger values are more
-				forgiving of small concave wiggles; smaller values catch
-				subtler problems but may also flag noisy sampling of an
-				otherwise-fine shape.
+		tolerance:
+			Maximum allowed backward angular step, in
+			radians, between consecutive raw boundary samples
+			before it's treated as a genuine direction reversal
+			rather than sampling noise.
+
+			Larger values are more forgiving of small concave
+			wiggles; smaller values catch subtler problems but may
+			also flag noisy sampling of an otherwise-fine shape.
 
 		Raises
 		------
-			ValueError: If the boundary is not star-shaped with respect
-				to its centroid. The message reports, in plain terms,
-				roughly where (as a fraction of the way around the
-				boundary) the first direction reversal was found, and/or
-				the shape's actual winding number, to help pin down the
-				offending part of the shape.
+		ValueError:
+			If the boundary is not star-shaped with respect to its centroid.
 		"""
 		theta = self._boundary_theta_walk
 
-		# angular step between consecutive raw boundary samples,
-		# wrapped into (-pi, pi] so a step that crosses the 2*pi -> 0
-		# seam reads as a small forward step rather than a huge jump.
 		diffs = np.diff(theta)
 		diffs = (diffs + np.pi) % (2 * np.pi) - np.pi
 
@@ -376,9 +293,6 @@ class ShapeWave:
 		closing = (theta[0] - theta[-1] + np.pi) % (2 * np.pi) - np.pi
 		diffs = np.concatenate([diffs, [closing]])
 
-		# the boundary may be sampled clockwise or counter-clockwise;
-		# figure out which direction is dominant so a reversal can be
-		# measured against it either way.
 		direction = np.sign(np.median(diffs))
 		if direction == 0:
 			direction = 1
@@ -395,10 +309,6 @@ class ShapeWave:
 				f"roughly {frac:%} of the way around the boundary"
 			)
 
-		# any genuine winding-count error differs by at least a whole
-		# turn, so a generous fixed threshold (well under half a turn)
-		# reliably tells "close to one turn" apart from "wrong number
-		# of turns" without needing its own tunable parameter.
 		if abs(abs(winding) - 1) > 0.5:
 			problems.append(
 				f"the boundary winds around the centroid {winding:.2f} "
@@ -417,23 +327,17 @@ class ShapeWave:
 		Boundary point at a position along the generated cycle, rather
 		than an absolute physical angle.
 
-		This is the starting-point-aware counterpart to `point_at`:
-		`progress` lives in the same starting-point-independent
-		0..2*pi space as `theta_grid`, and `starting_point` is applied
-		automatically before the lookup. Passing the same value used
-		to index `theta_grid` - e.g. the frame's playhead position in
-		an animation - returns the point currently being traced, so
-		`progress = 0` correctly returns the shape's starting point.
-
 		Parameters
 		----------
-			progress: Position in `[0, 2*pi)` along the generated
-				cycle (any real value; wrapped automatically).
+		progress:
+			Position in `[0, 2*pi)` along the generated
+			cycle (any real value; wrapped automatically).
 
 		Returns
 		-------
-			tuple[float, float]: The `(x, y)` boundary point,
-				centroid-relative and y-up.
+		tuple[float, float]:
+			The `(x, y)` boundary point,
+			centroid-relative and y-up.
 		"""
 		return self.point_at(progress + self._phase_rad)
 
@@ -443,13 +347,15 @@ class ShapeWave:
 
 		Parameters
 		----------
-			progress: Position in `[0, 2*pi)` along the generated
-				cycle (any real value; wrapped automatically).
+		progress:
+			Position in `[0, 2*pi)` along the generated
+			cycle (any real value; wrapped automatically).
 
 		Returns
 		-------
-			float: The y-coordinate of the boundary at that progress
-				point, accounting for `starting_point`.
+		float:
+			The y-coordinate of the boundary at that progress
+			point, accounting for `starting_point`.
 		"""
 		return self.y_at(progress + self._phase_rad)
 
@@ -464,13 +370,15 @@ class ShapeWave:
 
 		Parameters
 		----------
-			theta: Angle in radians (any real value; wrapped into
-				`[0, 2*pi)` automatically).
+		theta:
+			Angle in radians (any real value; wrapped into
+			`[0, 2*pi)` automatically).
 
 		Returns
 		-------
-			tuple[float, float]: The `(x, y)` boundary point at `theta`,
-				centroid-relative and y-up.
+		tuple[float, float]:
+			The `(x, y)` boundary point at `theta`,
+			centroid-relative and y-up.
 		"""
 		theta = np.mod(theta, 2 * np.pi)
 
@@ -489,12 +397,13 @@ class ShapeWave:
 
 		Parameters
 		----------
-			theta: Angle in radians (any real value; wrapped into
-				`[0, 2*pi)` automatically).
+		theta:
+			Angle in radians (any real value; wrapped into `[0, 2*pi)` automatically).
 
 		Returns
 		-------
-			float: The y-coordinate of the boundary at `theta`.
+		float:
+			The y-coordinate of the boundary at `theta`.
 		"""
 		theta = np.mod(theta, 2 * np.pi)
 
@@ -506,7 +415,7 @@ class ShapeWave:
 
 		Returns
 		-------
-			tuple[float, float, float, float]: `(xmin, xmax, ymin, ymax)`
-				of the shape, centroid-relative and y-up.
+		tuple[float, float, float, float]:
+			`(xmin, xmax, ymin, ymax)` of the shape, centroid-relative and y-up.
 		"""
 		return self._x_ext.min(), self._x_ext.max(), self._y_ext.min(), self._y_ext.max()

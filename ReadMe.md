@@ -1,4 +1,4 @@
-<!--img src="docs/logo.svg" width=175-->
+<img src="docs/logo.svg" width=175>
 
 <img src="https://img.shields.io/codacy/grade/f63a5ee41b80481ba64039378bfc33f9?logo=codacy&style=for-the-badge&cacheSeconds=60"></a>　<img src="https://custom-icon-badges.demolab.com/github/languages/code-size/kubinka0505/soniform?logo=database&style=for-the-badge&cacheSeconds=60"><a href="https://app.codacy.com/gh/kubinka0505/soniform">
 
@@ -20,7 +20,7 @@ Various scripts used to convert static visual media to signals. 🎨 → 🔊
 ### Scripts 🧰
 
 <details><summary><h3><code>lissajous</code> 🪱</h3></summary>
-<img align="right" src="docs/img/lissajous.gif" width=200>
+<img align="right" src="docs/img/scripts/lissajous.gif" width=200>
 
 Converts a vector shape into a Lissajous curve waveform, suitable for visualization on oscilloscopes.
 
@@ -50,7 +50,7 @@ lissajous.py -i "shape.svg" -a 0.5 -d 1 -r 2 -freq A4
 
 
 <details><summary><h3><code>wavegraph</code> 📊</h3></summary>
-<img align="right" src="docs/img/wavegraph.gif" width=200>
+<img align="right" src="docs/img/scripts/wavegraph.gif" width=200>
 
 Traces the outline of a shape and converts it into a waveform.
 
@@ -82,7 +82,7 @@ wavegraph.py -i "shape.svg" -f 40 -fps 30 -c #FC0 -sr 96k -freq C3
 
 
 <details><summary><h3><code>specimg</code> 🖼️</h3></summary>
-<img align="right" src="docs/img/specimg.png" width=200>
+<img align="right" src="docs/img/scripts/specimg.png" width=200>
 Creates a spectrogram image from the input file and produces the stereo audio signal represented by that spectrogram.
 
 <hr>

@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> None:
 		"-o", "--path-output",
 		type = str,
 		metavar = str,
-		default = os.path.normpath("outputs/{prog_name}/{file_name}/{file_name}_{sample_rate}_{frequency_min}-{frequency_max}.wav"),
+		default = os.path.join("outputs", "{prog_name}", "{file_name}", "{file_name}_{sample_rate}_{frequency_min}-{frequency_max}.wav"),
 		help = "Output sound path"
 	)
 

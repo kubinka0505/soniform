@@ -35,8 +35,8 @@ class Positions:
 	pos_start_attack:      int
 	pos_end_attack:        int
 
-	pos_start_first_cycle: Optional[int]
-	pos_end_first_cycle:   Optional[int]
+	pos_start_cycle_1: Optional[int]
+	pos_end_cycle_1:   Optional[int]
 
 	pos_start_release:     int
 	pos_end_release:       int

@@ -80,19 +80,11 @@ class NoteParser:
 		key = name + accidental
 
 		if key not in cls._SEMITONES:
-			raise ValueError(
-				f"Invalid note: {note!r}"
-			)
+			raise ValueError(f"Invalid note: {note!r}")
 
-		midi = (
-			(int(octave) + 1) * 12
-			+ cls._SEMITONES[key]
-		)
+		midi = (int(octave) + 1) * 12 + cls._SEMITONES[key]
 
-		return 440.0 * (
-			2 ** ((midi - 69) / 12)
-		)
-
+		return 440 * (2 ** ((midi - 69) / 12))
 
 	@classmethod
 	def encode(cls, frequency: float) -> str:
@@ -105,46 +97,26 @@ class NoteParser:
 			466.16 -> Bb4
 		"""
 		if frequency <= 0:
-			raise ValueError(
-				"Frequency must be positive"
-			)
+			raise ValueError("Frequency must be positive")
 
-		midi = round(
-			69 + 12 * math.log2(
-				frequency / 440
-			)
-		)
-
+		midi = round(69 + 12 * math.log2(frequency / 440))
 		octave = midi // 12 - 1
 
-		return (
-			f"{cls._NAMES[midi % 12]}"
-			f"{octave}"
-		)
-
+		return f"{cls._NAMES[midi % 12]} {octave}"
 
 	@classmethod
 	def midi(cls, note: str) -> int:
 		"""
 		Convert note name -> MIDI number.
 		"""
-		match = re.fullmatch(
-			r"([A-G])([#b]?)(\d+)",
-			note.strip(),
-		)
+		match = re.fullmatch(r"([A-G])([#b]?)(\d+)", note.strip())
 
 		if not match:
-			raise ValueError(
-				f"Invalid note: {note!r}"
-			)
+			raise ValueError(f"Invalid note: {note!r}")
 
 		name, accidental, octave = match.groups()
 
-		return (
-			(int(octave) + 1) * 12
-			+ cls._SEMITONES[name + accidental]
-		)
-
+		return (int(octave) + 1) * 12 + cls._SEMITONES[name + accidental]
 
 	@classmethod
 	def from_midi(cls, midi: int) -> str:
@@ -153,7 +125,4 @@ class NoteParser:
 		"""
 		octave = midi // 12 - 1
 
-		return (
-			f"{cls._NAMES[midi % 12]}"
-			f"{octave}"
-		)
+		return f"{cls._NAMES[midi % 12]} {octave}"
