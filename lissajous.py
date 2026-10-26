@@ -29,6 +29,7 @@ __date__    = "28th June 2026"
 
 def main(argv: list[str] | None = None):
 	from src._global.helpers.numbers import _parse_number
+	from src._global.helpers.paths import _parse_path_input
 
 	parser = argparse.ArgumentParser(
 		description = __doc__,
@@ -48,7 +49,7 @@ def main(argv: list[str] | None = None):
 
 	required.add_argument(
 		"-i", "--path-input",
-		type = str,
+		type = _parse_path_input,
 		metavar = str,
 		required = True,
 		help = "Path to the input shape file"
@@ -59,7 +60,7 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-o", "--path-output",
-		type = str,
+		type = _parse_path_input,
 		metavar = str,
 		default = os.path.join("outputs", "{prog_name}", "{file_name}", "{file_name}_{sample_rate}_{frequency}.wav"),
 		help = "Output sound path"

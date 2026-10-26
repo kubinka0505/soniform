@@ -105,13 +105,8 @@ def _parse_number(value: str | Real) -> int | float | str:
 					r"[A-Ga-g][b]?\d+",
 					name
 				):
-					note = (
-						name[0].upper()
-						+ name[1:]
-					)
-
+					note = name[0].upper() + name[1:]
 					return NoteParser.decode(note)
-
 
 			if isinstance(node, ast.BinOp):
 				if type(node.op) in operators:
@@ -131,17 +126,10 @@ def _parse_number(value: str | Real) -> int | float | str:
 					func_name = node.func.id.lower()
 
 					if func_name in functions:
-						args = [
-							walk(arg)
-							for arg in node.args
-						]
+						args = [walk(arg) for arg in node.args]
+						return functions[func_name](*args)
 
-						return functions[func_name](
-							*args
-						)
-			raise ValueError(
-				"Unsupported expression"
-			)
+			raise ValueError("Unsupported expression")
 
 		# Convert sharp notes before Python parses them
 		expr = re.sub(
@@ -159,16 +147,14 @@ def _parse_number(value: str | Real) -> int | float | str:
 
 		tree = ast.parse(
 			expr,
-			mode="eval"
+			mode = "eval"
 		)
 
 		return walk(tree.body)
 
 	# already numeric
 	if isinstance(value, Real):
-		return optimize(
-			float(value)
-		)
+		return optimize(float(value))
 
 	value = str(value).strip()
 
@@ -189,9 +175,7 @@ def _parse_number(value: str | Real) -> int | float | str:
 			+ value[1:]
 		)
 
-		return optimize(
-			NoteParser.decode(note)
-		)
+		return optimize(NoteParser.decode(note))
 
 	unitmap = {
 		"k": 3,
@@ -215,19 +199,13 @@ def _parse_number(value: str | Real) -> int | float | str:
 
 	# plain number
 	try:
-		return optimize(
-			float(value)
-		)
+		return optimize(float(value))
 	except ValueError:
 		pass
 
 	# expression
 	try:
-		return optimize(
-			float(
-				evaluate(value)
-			)
-		)
+		return optimize(float(evaluate(value)))
 	except (
 		ValueError,
 		SyntaxError,

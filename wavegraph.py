@@ -33,6 +33,7 @@ __date__    = "27th June 2026"
 
 def main(argv: list[str] | None = None):
 	from src._global.helpers.numbers import _parse_number
+	from src._global.helpers.paths import _parse_path_input
 
 	parser = argparse.ArgumentParser(
 		description = __doc__,
@@ -52,7 +53,7 @@ def main(argv: list[str] | None = None):
 
 	required.add_argument(
 		"-i", "--path-input",
-		type = str,
+		type = _parse_path_input,
 		metavar = str,
 		help = "Path to the input vector graphics file",
 		required = True
@@ -63,17 +64,17 @@ def main(argv: list[str] | None = None):
 
 	optional.add_argument(
 		"-oi", "--path-output-image",
-		type = str,
+		type = _parse_path_input,
 		metavar = str,
-		default = os.path.normpath("outputs/{prog_name}/{file_name}/{file_name}_{samples}.gif"),
+		default = os.path.join("outputs", "{prog_name}", "{file_name}", "{file_name}_{samples}.gif"),
 		help = "Output image path."
 	)
 
 	optional.add_argument(
 		"-os", "--path-output-sound",
-		type = str,
+		type = _parse_path_input,
 		metavar = str,
-		default = os.path.normpath("outputs/{prog_name}/{file_name}/{file_name}_{sample_rate}_{frequency}.wav"),
+		default = os.path.join("outputs", "{prog_name}", "{file_name}", "{file_name}_{sample_rate}_{frequency}.wav"),
 		help = "Output sound path."
 	)
 
