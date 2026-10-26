@@ -19,6 +19,7 @@ __date__    = "29th June 2026"
 
 def main(argv: list[str] | None = None) -> None:
 	from src._global.helpers.numbers import _parse_number
+	from src._global.helpers.paths import _parse_path_input
 
 	parser = argparse.ArgumentParser(
 		description = __doc__,
@@ -32,7 +33,7 @@ def main(argv: list[str] | None = None) -> None:
 
 	required.add_argument(
 		"-i", "--path-input",
-		type = str,
+		type = _parse_path_input,
 		metavar = str,
 		required = True,
 		help = "Input image. Supports SVG and formats supported by PIL"
