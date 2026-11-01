@@ -131,6 +131,7 @@ def sample_boundary(path: Path, n_samples: int = 4000) -> np.ndarray:
 	----------
 	path:
 		The (closed) path to sample.
+
 	n_samples:
 		Number of points to sample along the path's parametric range `[0, 1]`.
 		Higher values produce a smoother boundary approximation at the cost of more computation.
@@ -142,14 +143,13 @@ def sample_boundary(path: Path, n_samples: int = 4000) -> np.ndarray:
 		path's native (image) coordinate space, where y grows downward.
 	"""
 	ts = np.linspace(0, 1, n_samples, endpoint = False)
-	length = path.length()
 	pts = []
 
 	for t in ts:
-		p = path.point(length * t)
+		p = path.point(t)
 		pts.append((p.x, p.y))
 
-	return np.array(pts, dtype=float)
+	return np.array(pts, dtype = float)
 
 def polygon_centroid(points: np.ndarray) -> np.ndarray:
 	"""

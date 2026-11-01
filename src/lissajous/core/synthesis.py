@@ -281,7 +281,7 @@ def synthesize(
 		log.debug("-" * 32)
 
 	effective_duration = _resolve_effective_duration(settings)
-	effective_total_duration = settings.attack + effective_duration + settings.release
+	effective_duration_total = settings.attack + effective_duration + settings.release
 
 	log.info(
 		"settings: sample_rate=%d duration=%.3fs (effective=%.3fs) frequency=%.3fHz",
@@ -300,64 +300,30 @@ def synthesize(
 		total_len,
 	)
 
-	oversampling = 64
+	oversampling = 24
 	log.info("oversampling factor=%d", oversampling)
 
 	hi_rate = settings.sample_rate * oversampling
-	n_hi = max(oversampling, int(round(effective_total_duration * hi_rate)))
+	n_hi = max(oversampling, int(round(effective_duration_total * hi_rate)))
+	n_out = n_hi // oversampling
+	chunk_out = 2 ** 16 # output samples per chunk (~4M high-rate samples, ~32 MiB per array)
 
-	log.info(
-		"high-rate render: sample_rate=%d samples=%d duration=%.6fs",
-		hi_rate,
-		n_hi,
-		n_hi / hi_rate,
-	)
+	left = np.empty(n_out)
+	right = np.empty(n_out)
 
-	t_hi = np.arange(n_hi) / float(hi_rate)
-	log_array("time", t_hi)
+	for start in range(0, n_out, chunk_out):
+		end = min(start + chunk_out, n_out)
 
-	log.debug("building envelope")
-	frac = build_envelope(
-		t_hi,
-		settings.attack,
-		effective_duration,
-		settings.release,
-	)
-	log_array("envelope", frac)
+		t_hi = np.arange(start * oversampling, end * oversampling) / float(hi_rate)
+		frac = build_envelope(t_hi, settings.attack, effective_duration, settings.release)
+		phase = np.mod(t_hi * settings.frequency, 1)  # keep float64 here
+		s = np.clip(phase * (frac * total_len), 0, total_len)
 
-	sub_length = frac * total_len
-	log_array("sub_length", sub_length)
+		left[start:end] = _decimate(np.interp(s, cum_len, shape.xs), oversampling)
+		right[start:end] = _decimate(np.interp(s, cum_len, shape.ys), oversampling)
 
-	log.debug("building phase")
-	phase = np.mod(t_hi * settings.frequency, 1)
-	log_array("phase", phase)
-
-	log.debug("mapping phase to shape")
-	s = np.clip(phase * sub_length, 0, total_len)
-	log_array("shape_position", s)
-
-	log.debug("interpolating left channel")
-	left_hi = np.interp(s, cum_len, shape.xs)
-	log_array("left_hi", left_hi)
-
-	log.debug("interpolating right channel")
-	right_hi = np.interp(s, cum_len, shape.ys)
-	log_array("right_hi", right_hi)
-
-	log.debug("decimating left")
-	left = _decimate(left_hi, oversampling)
-	log_array("left", left)
-
-	log.debug("decimating right")
-	right = _decimate(right_hi, oversampling)
-	log_array("right", right)
-
-	log.debug("clipping output")
 	left = np.clip(left, -1, 1)
 	right = np.clip(right, -1, 1)
-
-	log_array("left_final", left)
-	log_array("right_final", right)
 
 	cycle_positions = build_cycle_positions(settings, settings.sample_rate, len(left))
 	log.info("cycle_positions=%s", cycle_positions)

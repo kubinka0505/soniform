@@ -175,7 +175,7 @@ def main(argv: list[str] | None = None):
 		"-s", "--samples",
 		type = _parse_number,
 		metavar = int,
-		default = 1500,
+		default = 8192,
 		help = "Boundary sample density"
 	)
 

@@ -40,10 +40,7 @@ class Shape:
 			raise ValueError(f'No paths/shapes found in "{path}".')
 
 		if len(shapes) > 1:
-			log.warning(
-				f"{len(shapes)} sub-paths/shapes found in the shape; using the first one.",
-				UserWarning
-			)
+			log.warning(f"{len(shapes)} sub-paths/shapes found in the shape; using the first one.")
 
 		shape_path = shapes[0]
 		if not isinstance(shape_path, SVGPath):

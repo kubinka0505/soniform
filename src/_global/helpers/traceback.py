@@ -9,8 +9,8 @@ def _parser_traceback(parser):
 	try:
 		yield
 	except Exception as err:
-		# Traverse to the deepest part of the traceback where the error was raised
 		tb = err.__traceback__
+
 		while tb.tb_next:
 			tb = tb.tb_next
 
