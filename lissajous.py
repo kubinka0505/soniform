@@ -259,6 +259,10 @@ def main(argv: list[str] | None = None):
 		log.info(f'Loading shape from "{cfg.path_input}"...')
 
 		shape = Shape.from_shape(cfg.path_input, cfg.flatten_samples, cfg.shape_points)
+
+		if shape.subpaths_closed:
+			log.warning(f"Shape has {shape.subpaths_closed} closed segments, synthesis will be unreliable")
+
 		shape.normalize(margin = cfg.margin)
 		
 		if cfg.rotation:
