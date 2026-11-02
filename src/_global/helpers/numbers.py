@@ -213,3 +213,19 @@ def _parse_number(value: str | Real) -> int | float | str:
 		ZeroDivisionError,
 	):
 		return value_original
+
+def _parse_comparer(value: str | Real, comparer: float) -> float:
+	text = str(value).strip()
+
+	if text.endswith("%"):
+		return float(text[:-1]) / 100 * comparer
+
+	num = _parse_number(text)
+
+	if isinstance(num, str):
+		raise ValueError(f"Invalid value: {value!r}")
+
+	if num < 0:
+		return comparer
+
+	return float(num)

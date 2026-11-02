@@ -20,7 +20,7 @@ __date__    = "29th June 2026"
 # Configuration
 
 def main(argv: list[str] | None = None) -> None:
-	from src._global.helpers.numbers import _parse_number
+	from src._global.helpers.numbers import _parse_number, _parse_comparer
 	from src._global.helpers.paths import _parse_path_input
 
 	parser = argparse.ArgumentParser(
@@ -110,7 +110,7 @@ def main(argv: list[str] | None = None) -> None:
 		"-o", "--path-output",
 		type = str,
 		metavar = str,
-		default = os.path.join("outputs", "{prog_name}", "{file_name}", "{file_name}_{sample_rate}_{frequency_min}-{frequency_max}.wav"),
+		default = os.path.join("outputs", __title__, "{file_name}", "{file_name}_{sample_rate}_{frequency_min}-{frequency_max}.wav"),
 		help = "Output sound path"
 	)
 
@@ -244,8 +244,8 @@ def main(argv: list[str] | None = None) -> None:
 	from src.specimg.config import Settings
 	from src.specimg.core.snd.export import convert
 
-	if args.frequency_max < 0:
-		args.frequency_max = args.sample_rate
+	args.frequency_min = _parse_comparer(args.frequency_min, args.sample_rate)
+	args.frequency_max = _parse_comparer(args.frequency_max, args.sample_rate)
 
 	# Path making
 	base = os.path.splitext(os.path.basename(args.path_input))[0]

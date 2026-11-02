@@ -9,6 +9,35 @@ from ...config import Settings
 
 #-=-=-=-#
 
+_RE_SVG_ROOT = re.compile(r"<svg\b[^>]*>")
+_RE_VIEWBOX = re.compile(
+	r'viewBox\s*=\s*"\s*([-\d.eE+]+)[\s,]+([-\d.eE+]+)[\s,]+([\d.eE+]+)[\s,]+([\d.eE+]+)\s*"'
+)
+
+def _normalize_svg_root_size(svg_text: str) -> str:
+	"""
+	Set the root <svg> width/height to the viewBox size so resvg gets a valid size.
+	"""
+	root = _RE_SVG_ROOT.search(svg_text)
+	if not root:
+		return svg_text
+
+	tag = root.group(0)
+	vb = _RE_VIEWBOX.search(tag)
+	if not vb:
+		return svg_text
+
+	w, h = float(vb.group(3)), float(vb.group(4))
+
+	if w <= 0 or h <= 0:
+		return svg_text
+
+	tag = re.sub(r'\swidth\s*=\s*"[^"]*"', "", tag)
+	tag = re.sub(r'\sheight\s*=\s*"[^"]*"', "", tag)
+	tag = tag.replace("<svg", f'<svg width="{w:g}" height="{h:g}"', 1)
+
+	return svg_text[:root.start()] + tag + svg_text[root.end():]
+
 def _guess_image_width(img_text: str) -> float:
 	"""
 	Extraction of the SVG's intrinsic width, falling back to a sane
@@ -60,7 +89,7 @@ def _load_raw_image(path: Path, cfg: Settings) -> Image.Image:
 	Load the source file as-is (mode preserved, including alpha), then pad canvas.
 	"""
 	if path.suffix.lower() == ".svg":
-		img_text = path.read_text(encoding = "UTF-8")
+		img_text = _normalize_svg_root_size(path.read_text(encoding = "UTF-8"))
 		base_width = _guess_image_width(img_text)
 
 		render_width = max(64, int(base_width * cfg.vector_render_scale))

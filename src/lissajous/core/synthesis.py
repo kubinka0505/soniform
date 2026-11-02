@@ -334,7 +334,17 @@ def synthesize(
 		len(left) / settings.sample_rate,
 	)
 
-	return left, right, cycle_positions
+	peak = max(
+		np.max(np.abs(left)),
+		np.max(np.abs(right))
+	)
+
+	if peak > 0:
+		left = left / peak
+		right = right / peak
+
+	# bug?: [left, right, ...] gets swapped channels
+	return right, left, cycle_positions
 
 def _decimate(signal: np.ndarray, factor: int) -> np.ndarray:
 	"""

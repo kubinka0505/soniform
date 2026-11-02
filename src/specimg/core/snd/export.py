@@ -37,6 +37,9 @@ def convert(
 	cfg (Settings):
 		Conversion settings.
 	"""
+	if cfg.frequency_min == cfg.frequency_max:
+		raise ValueError(f"Input frequencies are identical ({cfg.frequency_min})")
+
 	n_time_frames = max(2, int((cfg.duration * cfg.sample_rate) / cfg.hop_length))
 
 	input_path = Path(input_path)

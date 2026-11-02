@@ -139,7 +139,7 @@ def build_magnitude_spectrogram(
 		band_bins = np.where(band_mask)[0]
 
 		if len(band_bins) == 0:
-			raise SystemExit("Frequencies produced an empty band for the given sample_rate / n_fft.")
+			raise ValueError("Frequencies produced an empty band for the given sample_rate / n_fft.")
 
 		src_rows = intensity.shape[0]
 		row_idx = np.round(np.linspace(0, src_rows - 1, num = len(band_bins))).astype(int)

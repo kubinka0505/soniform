@@ -53,7 +53,6 @@ class NoteParser:
 		"B": 11,
 	}
 
-
 	@classmethod
 	def decode(cls, note: str) -> float:
 		"""

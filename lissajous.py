@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None):
 		"-o", "--path-output",
 		type = _parse_path_input,
 		metavar = str,
-		default = os.path.join("outputs", "{prog_name}", "{file_name}", "{file_name}_{sample_rate}_{frequency}.wav"),
+		default = os.path.join("outputs", __title__, "{file_name}", "{file_name}_{sample_rate}_{frequency}.wav"),
 		help = "Output sound path"
 	)
 
