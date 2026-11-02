@@ -92,14 +92,14 @@ specimg.py -i "shape.svg"
 
 **Advanced usage:**
 ```bash
-specimg.py -i "shape.svg" -d 2 -sr 88.2k -fmin 100 -fmax -1 -fm log
+specimg.py -i "shape.svg" -d 2 -sr 88.2k -fmin "100 * 2" -fmax -1 -fm log
 ```
 
 **Basic arguments:**
 * `-i`: Input image to convert.
 * `-d`: Duration of generated audio (seconds).
 * `-sr`: Audio sample rate (Hz).
-* `-fmin`: Lowest frequency included in the spectrogram (Hz).
-* `-fmax`: Highest frequency included in the spectrogram (`-1` is equivalent to `-sr`).
+* `-fmin`: Lowest frequency included in the spectrogram (Hz) **divided by $2$**.
+* `-fmax`: Highest frequency included in the spectrogram (`-1` is equivalent to `-sr`) **divided by $2$**.
 * `-fm`: Frequency scaling mode (`log` for logarithmic scaling).
 </details>

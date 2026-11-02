@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> None:
 		"-fmin", "--frequency-min",
 		type = _parse_number,
 		metavar = float,
-		default = 15000,
+		default = "25%",
 		help = "Bottom frequency the shape is mapped onto spectrogram"
 	)
 
@@ -57,7 +57,7 @@ def main(argv: list[str] | None = None) -> None:
 		"-fmax", "--frequency-max",
 		type = _parse_number,
 		metavar = float,
-		default = 16000,
+		default = "75%",
 		help = "Up frequency the shape is mapped onto spectrogram. -1 stands for `sample_rate`"
 	)
 
@@ -244,8 +244,8 @@ def main(argv: list[str] | None = None) -> None:
 	from src.specimg.config import Settings
 	from src.specimg.core.snd.export import convert
 
-	args.frequency_min = _parse_comparer(args.frequency_min, args.sample_rate)
-	args.frequency_max = _parse_comparer(args.frequency_max, args.sample_rate)
+	args.frequency_min = _parse_comparer(args.frequency_min, args.sample_rate) / 2
+	args.frequency_max = _parse_comparer(args.frequency_max, args.sample_rate) / 2
 
 	# Path making
 	base = os.path.splitext(os.path.basename(args.path_input))[0]
@@ -313,6 +313,10 @@ def main(argv: list[str] | None = None) -> None:
 		os.makedirs(os.path.dirname(path_out), exist_ok = True)
 
 	#-=-=-=-#
+
+	print(args.frequency_min)
+	print(args.frequency_max)
+	print(args.sample_rate)
 
 	with _parser_traceback(parser):
 		cfg = Settings(

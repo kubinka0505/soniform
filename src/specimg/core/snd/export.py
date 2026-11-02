@@ -38,7 +38,7 @@ def convert(
 		Conversion settings.
 	"""
 	if cfg.frequency_min == cfg.frequency_max:
-		raise ValueError(f"Input frequencies are identical ({cfg.frequency_min})")
+		raise ValueError(f"Input frequencies are identical ({cfg.frequency_min} Hz)")
 
 	n_time_frames = max(2, int((cfg.duration * cfg.sample_rate) / cfg.hop_length))
 

@@ -19,5 +19,5 @@ def _parser_traceback(parser):
 		filename = os.path.relpath(filename, os.getcwd())
 
 		# Format the output with line number info
-		os.sys.stderr.write(f"{parser.prog} | {filename} @ line {lineno}:\n{err.__class__.__name__}: {err}\n\a")
+		os.sys.stderr.write(f"\n{parser.prog} | {filename} @ line {lineno}:\n{err.__class__.__name__}: {err}\n\a")
 		os.sys.exit(2)
